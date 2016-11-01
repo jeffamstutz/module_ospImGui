@@ -1,0 +1,6 @@
+*.user*
+*.swp*
+
+build
+ospray
+test_data
