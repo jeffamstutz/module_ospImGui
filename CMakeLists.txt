@@ -1,5 +1,5 @@
 ## ======================================================================== ##
-## Copyright 2009-2015 Intel Corporation                                    ##
+## Copyright 2009-2017 Intel Corporation                                    ##
 ##                                                                          ##
 ## Licensed under the Apache License, Version 2.0 (the "License");          ##
 ## you may not use this file except in compliance with the License.         ##
@@ -66,25 +66,10 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 find_package(OpenGL REQUIRED)
 
 ##############################################################
-# Build GLFW
+# Build support libs
 ##############################################################
 
-set(GLFW_BUILD_DOCS     OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(glfw)
-
-##############################################################
-# Build gl3w
-##############################################################
-
-add_subdirectory(gl3w)
-
-##############################################################
-# Build imgui
-##############################################################
-
-add_subdirectory(imgui)
+add_subdirectory(common)
 
 ##############################################################
 # Build app
@@ -97,8 +82,8 @@ set(APP_NAME ospImGui)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
-  gl3w
-  imgui
+  common/gl3w
+  common/imgui
   ${OPENGL_INCLUDE_DIR}
   #${OSPRAY_INCLUDE_DIRS}
 )
