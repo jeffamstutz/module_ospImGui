@@ -346,6 +346,7 @@ namespace ospray {
     {
       bool show_test_window = true;
       bool show_another_window = false;
+
       ImVec4 clear_color = ImColor(114, 144, 154);
 
       // 1. Show a simple window
@@ -371,15 +372,6 @@ namespace ospray {
         ImGui::Text("Hello");
         ImGui::End();
       }
-
-      // Rendering
-      int display_w, display_h;
-      glfwGetFramebufferSize(window, &display_w, &display_h);
-      glViewport(0, 0, display_w, display_h);
-      glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-      glClear(GL_COLOR_BUFFER_BIT);
-      ImGui::Render();
-      glfwSwapBuffers(window);
     }
 
     void ImGui3DWidget::setViewPort(const vec3f from,
@@ -483,6 +475,8 @@ namespace ospray {
 
       auto *window = currentWidget->window;
 
+      ImVec4 clear_color = ImColor(114, 144, 154);
+
       // Main loop
       while (!glfwWindowShouldClose(window))
       {
@@ -490,6 +484,16 @@ namespace ospray {
         ImGui_ImplGlfwGL3_NewFrame();
 
         currentWidget->renderGui();
+
+        // Rendering
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        glClear(GL_COLOR_BUFFER_BIT);
+        currentWidget->display();
+        ImGui::Render();
+        glfwSwapBuffers(window);
       }
 
       // Cleanup
