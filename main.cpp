@@ -1,86 +1,68 @@
-// ImGui - standalone example application for Glfw + OpenGL 3, using programmable pipeline
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+// ======================================================================== //
+// Copyright 2009-2016 Intel Corporation                                    //
+//                                                                          //
+// Licensed under the Apache License, Version 2.0 (the "License");          //
+// you may not use this file except in compliance with the License.         //
+// You may obtain a copy of the License at                                  //
+//                                                                          //
+//     http://www.apache.org/licenses/LICENSE-2.0                           //
+//                                                                          //
+// Unless required by applicable law or agreed to in writing, software      //
+// distributed under the License is distributed on an "AS IS" BASIS,        //
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. //
+// See the License for the specific language governing permissions and      //
+// limitations under the License.                                           //
+// ======================================================================== //
 
-#include <imgui.h>
-#include "imgui_impl_glfw_gl3.h"
-#include <stdio.h>
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
+#include "common/ospray_cpp/Device.h"
+#include "common/commandline/Utility.h"
 
-static void error_callback(int error, const char* description)
+#include "widgets/imguiViewer.h"
+
+ospcommon::vec3f translate;
+ospcommon::vec3f scale;
+bool lockFirstFrame = false;
+
+void parseExtraParametersFromComandLine(int ac, const char **&av)
 {
-  fprintf(stderr, "Error %d: %s\n", error, description);
+  for (int i = 1; i < ac; i++) {
+    const std::string arg = av[i];
+    if (arg == "--translate") {
+      translate.x = atof(av[++i]);
+      translate.y = atof(av[++i]);
+      translate.z = atof(av[++i]);
+    } else if (arg == "--scale") {
+      scale.x = atof(av[++i]);
+      scale.y = atof(av[++i]);
+      scale.z = atof(av[++i]);
+    } else if (arg == "--lockFirstFrame") {
+      lockFirstFrame = true;
+    }
+  }
 }
 
-int main(int, char**)
+int main(int ac, const char **av)
 {
-  // Setup window
-  glfwSetErrorCallback(error_callback);
-  if (!glfwInit())
-      return 1;
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#if __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+  ospInit(&ac,av);
 
-  auto* window =
-      glfwCreateWindow(1280, 720, "ospImGui App", nullptr, nullptr);
+  ospray::imgui3D::init(&ac,av);
 
-  glfwMakeContextCurrent(window);
-  gl3wInit();
+  auto ospObjs = parseWithDefaultParsers(ac, av);
 
-  // Setup ImGui binding
-  ImGui_ImplGlfwGL3_Init(window, true);
+  std::deque<ospcommon::box3f>   bbox;
+  std::deque<ospray::cpp::Model> model;
+  ospray::cpp::Renderer renderer;
+  ospray::cpp::Camera   camera;
 
-  bool show_test_window = true;
-  bool show_another_window = false;
-  ImVec4 clear_color = ImColor(114, 144, 154);
+  std::tie(bbox, model, renderer, camera) = ospObjs;
 
-  // Main loop
-  while (!glfwWindowShouldClose(window))
-  {
-    glfwPollEvents();
-    ImGui_ImplGlfwGL3_NewFrame();
+  parseExtraParametersFromComandLine(ac, av);
 
-    // 1. Show a simple window
-    // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears
-    //      in a window automatically called "Debug"
-    {
-      static float f = 0.0f;
-      ImGui::Text("Hello, world!");
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-      ImGui::ColorEdit3("clear color", (float*)&clear_color);
-      if (ImGui::Button("Test Window")) show_test_window ^= 1;
-      if (ImGui::Button("Another Window")) show_another_window ^= 1;
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                  1000.0f / ImGui::GetIO().Framerate,
-                  ImGui::GetIO().Framerate);
-    }
+  ospray::ImGuiViewer window(bbox, model, renderer, camera);
+  window.setScale(scale);
+  window.setLockFirstAnimationFrame(lockFirstFrame);
+  window.setTranslation(translate);
+  window.create("ospGlutViewer: OSPRay Mini-Scene Graph test viewer");
 
-    // 2. Show another window, this time using an explicit Begin/End pair
-    if (show_another_window)
-    {
-      ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-      ImGui::Begin("Another Window", &show_another_window);
-      ImGui::Text("Hello");
-      ImGui::End();
-    }
-
-    // Rendering
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui::Render();
-    glfwSwapBuffers(window);
-  }
-
-  // Cleanup
-  ImGui_ImplGlfwGL3_Shutdown();
-  glfwTerminate();
-
-  return 0;
+  window.run();
 }

@@ -1,5 +1,5 @@
 ## ======================================================================== ##
-## Copyright 2009-2017 Intel Corporation                                    ##
+## Copyright 2009-2016 Intel Corporation                                    ##
 ##                                                                          ##
 ## Licensed under the Apache License, Version 2.0 (the "License");          ##
 ## you may not use this file except in compliance with the License.         ##
@@ -14,42 +14,21 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-option(OSPRAY_MODULE_OSPIMGUI "Build 'ospImGui' module app" ON)
+include_directories(
+  ${CMAKE_CURRENT_LIST_DIR}/../common/gl3w
+  ${CMAKE_CURRENT_LIST_DIR}/../common/glfw/include
+  ${CMAKE_CURRENT_LIST_DIR}/../common/imgui
+  ${OPENGL_INCLUDE_DIR}
+)
 
-if (OSPRAY_MODULE_OSPIMGUI)
-
-  find_package(OpenGL REQUIRED)
-
-  ##############################################################
-  # Build support libs
-  ##############################################################
-
-  add_subdirectory(common)
-  add_subdirectory(widgets)
-
-  ##############################################################
-  # Build app
-  ##############################################################
-
-  include_directories(
-    ${CMAKE_SOURCE_DIR}
-    common/gl3w
-    common/imgui
-    ${OPENGL_INCLUDE_DIR}
-  )
-
-  ospray_create_application(ospImGui
-    imgui_main.cpp
-    main.cpp
-    LINK
-    ${OPENGL_LIBRARIES}
-    glfw
-    gl3w
-    imgui
-    ospray
-    ospray_common
-    ospray_commandline
-    ospray_imgui3d
-  )
-
-endif()
+ospray_create_library(ospray_imgui3d
+  Imgui3dExport.h
+  imgui3D.cpp
+  imguiViewer.cpp
+  imgui_impl_glfw_gl3.cpp
+LINK
+  ospray
+  ospray_common
+  ${OPENGL_LIBRARIES}
+  ${GLUT_LIBRARIES}
+)

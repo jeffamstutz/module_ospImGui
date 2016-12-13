@@ -260,9 +260,15 @@ bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
     glEnableVertexAttribArray(g_AttribLocationColor);
 
 #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, pos));
-    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, uv));
-    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, col));
+    glVertexAttribPointer(g_AttribLocationPosition, 2,
+                          GL_FLOAT, GL_FALSE, sizeof(ImDrawVert),
+                          (GLvoid*)OFFSETOF(ImDrawVert, pos));
+    glVertexAttribPointer(g_AttribLocationUV, 2,
+                          GL_FLOAT, GL_FALSE, sizeof(ImDrawVert),
+                          (GLvoid*)OFFSETOF(ImDrawVert, uv));
+    glVertexAttribPointer(g_AttribLocationColor, 4,
+                          GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert),
+                          (GLvoid*)OFFSETOF(ImDrawVert, col));
 #undef OFFSETOF
 
     ImGui_ImplGlfwGL3_CreateFontsTexture();
@@ -277,20 +283,28 @@ bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
 
 void    ImGui_ImplGlfwGL3_InvalidateDeviceObjects()
 {
-    if (g_VaoHandle) glDeleteVertexArrays(1, &g_VaoHandle);
-    if (g_VboHandle) glDeleteBuffers(1, &g_VboHandle);
-    if (g_ElementsHandle) glDeleteBuffers(1, &g_ElementsHandle);
+    if (g_VaoHandle)
+      glDeleteVertexArrays(1, &g_VaoHandle);
+    if (g_VboHandle)
+      glDeleteBuffers(1, &g_VboHandle);
+    if (g_ElementsHandle)
+      glDeleteBuffers(1, &g_ElementsHandle);
     g_VaoHandle = g_VboHandle = g_ElementsHandle = 0;
 
-    if (g_ShaderHandle && g_VertHandle) glDetachShader(g_ShaderHandle, g_VertHandle);
-    if (g_VertHandle) glDeleteShader(g_VertHandle);
+    if (g_ShaderHandle && g_VertHandle)
+      glDetachShader(g_ShaderHandle, g_VertHandle);
+    if (g_VertHandle)
+      glDeleteShader(g_VertHandle);
     g_VertHandle = 0;
 
-    if (g_ShaderHandle && g_FragHandle) glDetachShader(g_ShaderHandle, g_FragHandle);
-    if (g_FragHandle) glDeleteShader(g_FragHandle);
+    if (g_ShaderHandle && g_FragHandle)
+      glDetachShader(g_ShaderHandle, g_FragHandle);
+    if (g_FragHandle)
+      glDeleteShader(g_FragHandle);
     g_FragHandle = 0;
 
-    if (g_ShaderHandle) glDeleteProgram(g_ShaderHandle);
+    if (g_ShaderHandle)
+      glDeleteProgram(g_ShaderHandle);
     g_ShaderHandle = 0;
 
     if (g_FontTexture)
@@ -301,7 +315,7 @@ void    ImGui_ImplGlfwGL3_InvalidateDeviceObjects()
     }
 }
 
-bool    ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks)
+bool ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks)
 {
     g_Window = window;
 
@@ -326,20 +340,22 @@ bool    ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks)
     io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
     io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
 
-    io.RenderDrawListsFn = ImGui_ImplGlfwGL3_RenderDrawLists;       // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+    // Alternatively you can set this to NULL and call ImGui::GetDrawData()
+    // after ImGui::Render() to get the same ImDrawData pointer.
+    io.RenderDrawListsFn  = ImGui_ImplGlfwGL3_RenderDrawLists;
     io.SetClipboardTextFn = ImGui_ImplGlfwGL3_SetClipboardText;
     io.GetClipboardTextFn = ImGui_ImplGlfwGL3_GetClipboardText;
-    io.ClipboardUserData = g_Window;
+    io.ClipboardUserData  = g_Window;
 #ifdef _WIN32
     io.ImeWindowHandle = glfwGetWin32Window(g_Window);
 #endif
 
     if (install_callbacks)
     {
-        glfwSetMouseButtonCallback(window, ImGui_ImplGlfwGL3_MouseButtonCallback);
-        glfwSetScrollCallback(window, ImGui_ImplGlfwGL3_ScrollCallback);
-        glfwSetKeyCallback(window, ImGui_ImplGlfwGL3_KeyCallback);
-        glfwSetCharCallback(window, ImGui_ImplGlfwGL3_CharCallback);
+      glfwSetMouseButtonCallback(window, ImGui_ImplGlfwGL3_MouseButtonCallback);
+      glfwSetScrollCallback(window, ImGui_ImplGlfwGL3_ScrollCallback);
+      glfwSetKeyCallback(window, ImGui_ImplGlfwGL3_KeyCallback);
+      glfwSetCharCallback(window, ImGui_ImplGlfwGL3_CharCallback);
     }
 
     return true;
@@ -354,7 +370,7 @@ void ImGui_ImplGlfwGL3_Shutdown()
 void ImGui_ImplGlfwGL3_NewFrame()
 {
     if (!g_FontTexture)
-        ImGui_ImplGlfwGL3_CreateDeviceObjects();
+      ImGui_ImplGlfwGL3_CreateDeviceObjects();
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -364,7 +380,9 @@ void ImGui_ImplGlfwGL3_NewFrame()
     glfwGetWindowSize(g_Window, &w, &h);
     glfwGetFramebufferSize(g_Window, &display_w, &display_h);
     io.DisplaySize = ImVec2((float)w, (float)h);
-    io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+    io.DisplayFramebufferScale =
+        ImVec2(w > 0 ? ((float)display_w / w) :
+                       0, h > 0 ? ((float)display_h / h) : 0);
 
     // Setup time step
     double current_time =  glfwGetTime();
