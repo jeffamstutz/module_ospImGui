@@ -32,6 +32,8 @@ namespace ospray {
 
     /*! initialize everything IMGUI-related */
     OSPRAY_IMGUI3D_INTERFACE void init(int32_t *ac, const char **av);
+    /*! switch over to IMGUI for control flow. This func will not return */
+    OSPRAY_IMGUI3D_INTERFACE void run();
 
     using ospcommon::AffineSpace3fa;
 
@@ -134,154 +136,150 @@ namespace ospray {
     
     */
     struct OSPRAY_IMGUI3D_INTERFACE ImGui3DWidget
-
     {
-      /*! size we'll create a window at */
-      static vec2i defaultInitSize;
+       /*! size we'll create a window at */
+       static vec2i defaultInitSize;
 
-      typedef enum { 
-        FRAMEBUFFER_UCHAR,FRAMEBUFFER_FLOAT,FRAMEBUFFER_DEPTH,FRAMEBUFFER_NONE
-      } FrameBufferMode;
-      typedef enum {
-        MOVE_MODE           =(1<<0),
-        INSPECT_CENTER_MODE =(1<<1)
-      } ManipulatorMode;
+       typedef enum {
+         FRAMEBUFFER_UCHAR,FRAMEBUFFER_FLOAT,FRAMEBUFFER_DEPTH,FRAMEBUFFER_NONE
+       } FrameBufferMode;
+       typedef enum {
+         MOVE_MODE           =(1<<0),
+         INSPECT_CENTER_MODE =(1<<1)
+       } ManipulatorMode;
 
-      /*! internal viewPort class */
-      struct OSPRAY_IMGUI3D_INTERFACE ViewPort {
-        bool modified; /* the viewPort will set this flag any time any of
-                          its values get changed. */
+       /*! internal viewPort class */
+       struct OSPRAY_IMGUI3D_INTERFACE ViewPort {
+         bool modified; /* the viewPort will set this flag any time any of
+                           its values get changed. */
 
-        vec3f from;
-        vec3f at;
-        vec3f up;
-        float openingAngle; //!< in degrees, along Y direction
-        float aspect; //!< aspect ratio X:Y
-        // float focalDistance;
-      
-        /*! camera frame in which the Y axis is the depth axis, and X
-          and Z axes are parallel to the screen X and Y axis. The frame
-          itself remains normalized. */
-        AffineSpace3fa frame; 
-      
-        /*! set 'up' vector. if this vector is '0,0,0' the viewer will
-         *not* apply the up-vector after camera manipulation */
-        void snapUp();
+         vec3f from;
+         vec3f at;
+         vec3f up;
+         float openingAngle; //!< in degrees, along Y direction
+         float aspect; //!< aspect ratio X:Y
+         // float focalDistance;
 
-        ViewPort();
-      };
+         /*! camera frame in which the Y axis is the depth axis, and X
+           and Z axes are parallel to the screen X and Y axis. The frame
+           itself remains normalized. */
+         AffineSpace3fa frame;
 
-      // static InspectCenter INSPECT_CENTER;
-      Manipulator *inspectCenterManipulator;
-      Manipulator *moveModeManipulator;
+         /*! set 'up' vector. if this vector is '0,0,0' the viewer will
+          *not* apply the up-vector after camera manipulation */
+         void snapUp();
 
-      /*! current manipulator */
-      Manipulator *manipulator;
+         ViewPort();
+       };
 
-      ImGui3DWidget(FrameBufferMode frameBufferMode,
-                   ManipulatorMode initialManipulator=INSPECT_CENTER_MODE,
-                   int allowedManipulators=INSPECT_CENTER_MODE|MOVE_MODE);
+       // static InspectCenter INSPECT_CENTER;
+       Manipulator *inspectCenterManipulator;
+       Manipulator *moveModeManipulator;
 
-      /*! set a default camera position that views given bounds from the
-        top left front */
-      virtual void setWorldBounds(const box3f &worldBounds);
-      /*! tell IMGUI that this window is 'dirty' and needs redrawing */
-       virtual void forceRedraw();
-      /*! set window title */
-       void setTitle(const char *title);
-      /*! set window title */
-       void setTitle(const std::string &title)
-      { setTitle(title.c_str()); }
-      /*! set viewport to given values */
+       /*! current manipulator */
+       Manipulator *manipulator;
+
+       ImGui3DWidget(FrameBufferMode frameBufferMode,
+                    ManipulatorMode initialManipulator=INSPECT_CENTER_MODE,
+                    int allowedManipulators=INSPECT_CENTER_MODE|MOVE_MODE);
+
+       /*! set a default camera position that views given bounds from the
+         top left front */
+       virtual void setWorldBounds(const box3f &worldBounds);
+       /*! set window title */
+        void setTitle(const char *title);
+       /*! set window title */
+        void setTitle(const std::string &title)
+       { setTitle(title.c_str()); }
+       /*! set viewport to given values */
        void setViewPort(const vec3f from, const vec3f at, const vec3f up);
 
-      /*! switch over to IMGUI for control flow. This func will not return */
-      void run();
+       // ------------------------------------------------------------------
+       // event handling - override this to change this widgets behavior
+       // to input events
+       // ------------------------------------------------------------------
+       virtual void mouseButton(int32_t which,
+                                                       bool released,
+                                                       const vec2i &pos);
+       virtual void motion(const vec2i &pos);
+       virtual void reshape(const vec2i &newSize);
+       virtual void idle();
+       /*! display this window. By default this will just clear this
+           window's framebuffer; it's up to the user to override this fct
+           to do something more useful */
+       virtual void display();
 
-      // ------------------------------------------------------------------
-      // event handling - override this to change this widgets behavior
-      // to input events
-      // ------------------------------------------------------------------
-      virtual void mouseButton(int32_t which,
-                                                      bool released,
-                                                      const vec2i &pos);
-      virtual void motion(const vec2i &pos);
-      virtual void reshape(const vec2i &newSize);
-      virtual void idle();
-      /*! display this window. By default this will just clear this
-          window's framebuffer; it's up to the user to override this fct
-          to do something more useful */
-      virtual void display();
+       void renderGui();
 
-      // ------------------------------------------------------------------
-      // helper functions
-      // ------------------------------------------------------------------
-      /*! activate _this_ window, in the sense that all future glut
-        events get routed to this window instance */
-      virtual void activate();
-      /*! create this window. Note that this just *creates* the window,
-        but glut will not do anything else with this window before
-        'run' got called */
-      void create(const char *title,
-                  const vec2i &size = defaultInitSize,
-                  bool fullScreen = false);
+       // ------------------------------------------------------------------
+       // helper functions
+       // ------------------------------------------------------------------
+       /*! activate _this_ window, in the sense that all future glut
+         events get routed to this window instance */
+       virtual void activate();
+       /*! create this window. Note that this just *creates* the window,
+         but glut will not do anything else with this window before
+         'run' got called */
+       void create(const char *title,
+                   const vec2i &size = defaultInitSize,
+                   bool fullScreen = false);
 
-      // ------------------------------------------------------------------
-      // camera helper code
-      // ------------------------------------------------------------------
-      void snapUp();
-      /*! set 'up' vector. if this vector is '0,0,0' the viewer will
-       *not* apply the up-vector after camera manipulation */
-      virtual void setZUp(const vec3f &up);
-      void noZUp() { setZUp(vec3f(0.f)); }
+       // ------------------------------------------------------------------
+       // camera helper code
+       // ------------------------------------------------------------------
+       void snapUp();
+       /*! set 'up' vector. if this vector is '0,0,0' the viewer will
+        *not* apply the up-vector after camera manipulation */
+       virtual void setZUp(const vec3f &up);
+       void noZUp() { setZUp(vec3f(0.f)); }
 
-      // ------------------------------------------------------------------
-      // internal state variables
-      // ------------------------------------------------------------------
-      vec2i lastMousePos; /*! last mouse screen position of mouse before
-                            current motion */
-      vec2i currMousePos; /*! current screen position of mouse */
-      int64_t lastButtonState, currButtonState, currModifiers;
-      ViewPort viewPort;
-      box3f  worldBounds; /*!< world bounds, to automatically set viewPort
-                            lookat, mouse speed, etc */
-      int32_t windowID;
-      vec2i windowSize;
-      /*! camera speed modifier - affects how many units the camera
-         _moves_ with each unit on the screen */
-      float motionSpeed;
-      /*! camera rotation speed modifier - affects how many units the
-         camera _rotates_ with each unit on the screen */
-      float rotateSpeed;
-      FrameBufferMode frameBufferMode;
+       // ------------------------------------------------------------------
+       // internal state variables
+       // ------------------------------------------------------------------
+       vec2i lastMousePos; /*! last mouse screen position of mouse before
+                             current motion */
+       vec2i currMousePos; /*! current screen position of mouse */
+       int64_t lastButtonState, currButtonState, currModifiers;
+       ViewPort viewPort;
+       box3f  worldBounds; /*!< world bounds, to automatically set viewPort
+                             lookat, mouse speed, etc */
+       int32_t windowID;
+       vec2i windowSize;
+       /*! camera speed modifier - affects how many units the camera
+          _moves_ with each unit on the screen */
+       float motionSpeed;
+       /*! camera rotation speed modifier - affects how many units the
+          camera _rotates_ with each unit on the screen */
+       float rotateSpeed;
+       FrameBufferMode frameBufferMode;
 
-      /*! recompute current viewPort's frame from cameras 'from',
-          'at', 'up' values. */
-      void computeFrame();
+       /*! recompute current viewPort's frame from cameras 'from',
+           'at', 'up' values. */
+       void computeFrame();
 
-      static ImGui3DWidget *activeWindow;
-      /*! pointer to the frame buffer data. it is the repsonsiblity of
-          the applicatoin derived from this class to properly allocate
-          and deallocate the frame buffer pointer */
-      union {
-        /*! uchar[4] RGBA-framebuffer, if applicable */
-        uint32_t *ucharFB;
-        /*! float[4] RGBA-framebuffer, if applicable */
-        vec3fa *floatFB;
-      };
+       static ImGui3DWidget *activeWindow;
+       /*! pointer to the frame buffer data. it is the repsonsiblity of
+           the applicatoin derived from this class to properly allocate
+           and deallocate the frame buffer pointer */
+       union {
+         /*! uchar[4] RGBA-framebuffer, if applicable */
+         uint32_t *ucharFB;
+         /*! float[4] RGBA-framebuffer, if applicable */
+         vec3fa *floatFB;
+       };
 
-      GLFWwindow *window {nullptr};
+       GLFWwindow *window {nullptr};
 
-      friend void glut3dReshape(int32_t x, int32_t y);
-      friend void glut3dDisplay(void);
-      friend void glut3dKeyboard(char key, int32_t x, int32_t y);
-      friend void glut3dIdle(void);
-      friend void glut3dMotionFunc(int32_t x, int32_t y);
-      friend void glut3dMouseFunc(int32_t whichButton, int32_t released, 
-                                  int32_t x, int32_t y);
+       friend void glut3dReshape(int32_t x, int32_t y);
+       friend void glut3dDisplay(void);
+       friend void glut3dKeyboard(char key, int32_t x, int32_t y);
+       friend void glut3dIdle(void);
+       friend void glut3dMotionFunc(int32_t x, int32_t y);
+       friend void glut3dMouseFunc(int32_t whichButton, int32_t released,
+                                   int32_t x, int32_t y);
 
-      virtual void keypress(char key, const vec2i &where);
-      virtual void specialkey(int32_t key, const vec2i &where);
+       virtual void keypress(char key, const vec2i &where);
+       virtual void specialkey(int32_t key, const vec2i &where);
     };
 
     OSPRAY_IMGUI3D_INTERFACE std::ostream &operator<<(std::ostream &o,

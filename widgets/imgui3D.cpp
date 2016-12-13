@@ -39,12 +39,17 @@
 #include <stdexcept>
 #include <string>
 
+extern "C" void glDrawPixels( GLsizei width, GLsizei height,
+                              GLenum format, GLenum type,
+                              const GLvoid *pixels );
 
 namespace ospray {
 
   namespace imgui3D {
 
     bool dumpScreensDuringAnimation = false;
+
+    static ImGui3DWidget *currentWidget = nullptr;
 
     // Class definitions //////////////////////////////////////////////////////
 
@@ -216,8 +221,6 @@ namespace ospray {
 
       manipulator->motion(this);
       lastMousePos = currMousePos;
-      if (viewPort.modified)
-        forceRedraw();
     }
 
     ImGui3DWidget::ImGui3DWidget(FrameBufferMode frameBufferMode,
@@ -279,10 +282,8 @@ namespace ospray {
     void ImGui3DWidget::setZUp(const vec3f &up)
     {
       viewPort.up = up;
-      if (up != vec3f(0.f)) {
+      if (up != vec3f(0.f))
         viewPort.snapUp();
-        forceRedraw();
-      }
     }
 
     void ImGui3DWidget::idle()
@@ -300,8 +301,6 @@ namespace ospray {
       viewPort.aspect = newSize.x/float(newSize.y);
 #if 0
       glViewport(0, 0, windowSize.x, windowSize.y);
-
-      forceRedraw();
 #endif
     }
 
@@ -313,18 +312,11 @@ namespace ospray {
 #endif
     }
 
-    void ImGui3DWidget::forceRedraw()
-    {
-#if 0
-      glutPostRedisplay();
-#endif
-    }
-
     void ImGui3DWidget::display()
     {
-#if 0
-      if (frameBufferMode == Glut3DWidget::FRAMEBUFFER_UCHAR && ucharFB) {
-        glDrawPixels(windowSize.x, windowSize.y, GL_RGBA, GL_UNSIGNED_BYTE, ucharFB);
+      if (frameBufferMode == ImGui3DWidget::FRAMEBUFFER_UCHAR && ucharFB) {
+        glDrawPixels(windowSize.x, windowSize.y,
+                     GL_RGBA, GL_UNSIGNED_BYTE, ucharFB);
 #ifndef _WIN32
         if (animating && dumpScreensDuringAnimation) {
           char tmpFileName[] = "/tmp/ospray_scene_dump_file.XXXXXXXXXX";
@@ -342,14 +334,52 @@ namespace ospray {
           saveFrameBufferToFile(fileName,ucharFB,windowSize.x,windowSize.y);
         }
 #endif
-      } else if (frameBufferMode == Glut3DWidget::FRAMEBUFFER_FLOAT && floatFB) {
+      } else if (frameBufferMode == ImGui3DWidget::FRAMEBUFFER_FLOAT && floatFB) {
         glDrawPixels(windowSize.x, windowSize.y, GL_RGBA, GL_FLOAT, floatFB);
       } else {
         glClearColor(0.f,0.f,0.f,1.f);
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
       }
-      glutSwapBuffers();
-#endif
+    }
+
+    void ImGui3DWidget::renderGui()
+    {
+      bool show_test_window = true;
+      bool show_another_window = false;
+      ImVec4 clear_color = ImColor(114, 144, 154);
+
+      // 1. Show a simple window
+      // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears
+      //      in a window automatically called "Debug"
+      {
+        static float f = 0.0f;
+        ImGui::Text("Hello, world!");
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        ImGui::ColorEdit3("clear color", (float*)&clear_color);
+        if (ImGui::Button("Test Window")) show_test_window ^= 1;
+        if (ImGui::Button("Another Window")) show_another_window ^= 1;
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                    1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
+      }
+
+      // 2. Show another window, this time using an explicit Begin/End pair
+      if (show_another_window)
+      {
+        ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
+        ImGui::Begin("Another Window", &show_another_window);
+        ImGui::Text("Hello");
+        ImGui::End();
+      }
+
+      // Rendering
+      int display_w, display_h;
+      glfwGetFramebufferSize(window, &display_w, &display_h);
+      glViewport(0, 0, display_w, display_h);
+      glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+      glClear(GL_COLOR_BUFFER_BIT);
+      ImGui::Render();
+      glfwSwapBuffers(window);
     }
 
     void ImGui3DWidget::setViewPort(const vec3f from,
@@ -426,7 +456,11 @@ namespace ospray {
 
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
       glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#if 1
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#else
       glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
 #if __APPLE__
       glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -438,13 +472,16 @@ namespace ospray {
 
       // NOTE(jda) - move key handler registration into this class
       ImGui_ImplGlfwGL3_Init(window, true);
+
+      currentWidget = this;
     }
 
-    void ImGui3DWidget::run()
+    void run()
     {
-      bool show_test_window = true;
-      bool show_another_window = false;
-      ImVec4 clear_color = ImColor(114, 144, 154);
+      if (!currentWidget)
+        throw std::runtime_error("You must create a the ImGuiViewer window!");
+
+      auto *window = currentWidget->window;
 
       // Main loop
       while (!glfwWindowShouldClose(window))
@@ -452,38 +489,7 @@ namespace ospray {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-        // 1. Show a simple window
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears
-        //      in a window automatically called "Debug"
-        {
-          static float f = 0.0f;
-          ImGui::Text("Hello, world!");
-          ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-          ImGui::ColorEdit3("clear color", (float*)&clear_color);
-          if (ImGui::Button("Test Window")) show_test_window ^= 1;
-          if (ImGui::Button("Another Window")) show_another_window ^= 1;
-          ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                      1000.0f / ImGui::GetIO().Framerate,
-                      ImGui::GetIO().Framerate);
-        }
-
-        // 2. Show another window, this time using an explicit Begin/End pair
-        if (show_another_window)
-        {
-          ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-          ImGui::Begin("Another Window", &show_another_window);
-          ImGui::Text("Hello");
-          ImGui::End();
-        }
-
-        // Rendering
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui::Render();
-        glfwSwapBuffers(window);
+        currentWidget->renderGui();
       }
 
       // Cleanup

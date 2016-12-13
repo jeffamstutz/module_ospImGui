@@ -151,7 +151,6 @@ void ImGuiViewer::reshape(const vec2i &newSize)
   camera.set("aspect", viewPort.aspect);
   camera.commit();
   viewPort.modified = true;
-  forceRedraw();
 }
 
 void ImGuiViewer::keypress(char key, const vec2i &where)
@@ -168,7 +167,6 @@ void ImGuiViewer::keypress(char key, const vec2i &where)
     break;
   case 'R':
     alwaysRedraw = !alwaysRedraw;
-    forceRedraw();
     break;
   case '!':
     saveScreenshot("ospimguiviewer");
@@ -180,7 +178,6 @@ void ImGuiViewer::keypress(char key, const vec2i &where)
       viewPort.up = vec3f(1,0,0);
     }
     viewPort.modified = true;
-    forceRedraw();
     break;
   case 'Y':
     if (viewPort.up == vec3f(0,1,0) || viewPort.up == vec3f(0,-1.f,0)) {
@@ -189,7 +186,6 @@ void ImGuiViewer::keypress(char key, const vec2i &where)
       viewPort.up = vec3f(0,1,0);
     }
     viewPort.modified = true;
-    forceRedraw();
     break;
   case 'Z':
     if (viewPort.up == vec3f(0,0,1) || viewPort.up == vec3f(0,0,-1.f)) {
@@ -198,7 +194,6 @@ void ImGuiViewer::keypress(char key, const vec2i &where)
       viewPort.up = vec3f(0,0,1);
     }
     viewPort.modified = true;
-    forceRedraw();
     break;
   case 'c':
     viewPort.modified = true;//Reset accumulation
@@ -303,7 +298,6 @@ void ImGuiViewer::display()
   if (alwaysRedraw) {
     title += " (" + std::to_string((long double)fps.getFPS()) + " fps)";
     setTitle(title);
-    forceRedraw();
   } else {
     setTitle(title);
   }

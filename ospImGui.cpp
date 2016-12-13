@@ -64,5 +64,5 @@ int main(int ac, const char **av)
   window.setTranslation(translate);
   window.create("ospGlutViewer: OSPRay Mini-Scene Graph test viewer");
 
-  window.run();
+  ospray::imgui3D::run();
 }

@@ -39,8 +39,7 @@ if (OSPRAY_MODULE_OSPIMGUI)
   )
 
   ospray_create_application(ospImGui
-    imgui_main.cpp
-    main.cpp
+    ospImGui.cpp
     LINK
     ${OPENGL_LIBRARIES}
     glfw
