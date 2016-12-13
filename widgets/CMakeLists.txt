@@ -29,6 +29,8 @@ ospray_create_library(ospray_imgui3d
 LINK
   ospray
   ospray_common
+  glfw
+  gl3w
+  imgui
   ${OPENGL_LIBRARIES}
-  ${GLUT_LIBRARIES}
 )
