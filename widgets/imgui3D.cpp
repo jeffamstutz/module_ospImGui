@@ -342,7 +342,9 @@ namespace ospray {
       glfwSetCursorPosCallback(
         window,
         [](GLFWwindow*, double xpos, double ypos) {
-          ImGui3DWidget::activeWindow->motion(vec2i(xpos, ypos));
+          ImGuiIO& io = ImGui::GetIO();
+          if (!io.WantCaptureMouse)
+            ImGui3DWidget::activeWindow->motion(vec2i(xpos, ypos));
         }
       );
 
