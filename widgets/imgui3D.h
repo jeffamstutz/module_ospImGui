@@ -56,9 +56,6 @@ namespace ospray {
       // this is the fct that gets called when the mouse moved in the
       // associated window
       virtual void motion(ImGui3DWidget *widget);
-      /*! key press handler - override this fct to catch keyboard. */
-      virtual void keypress(ImGui3DWidget *widget,
-                                                    const int32_t key);
       Manipulator(ImGui3DWidget *widget)
         : widget(widget) {}
 
@@ -88,7 +85,6 @@ namespace ospray {
                              const vec2i &to, const vec2i &from);
       virtual void dragMiddle(ImGui3DWidget *widget,
                               const vec2i &to, const vec2i &from);
-      virtual void keypress(ImGui3DWidget *widget, int32_t key);
       virtual void button(ImGui3DWidget *widget, const vec2i &pos);
       InspectCenter(ImGui3DWidget *widget);
       void rotate(float du, float dv);
@@ -104,7 +100,6 @@ namespace ospray {
                              const vec2i &to, const vec2i &from);
       virtual void dragMiddle(ImGui3DWidget *widget,
                               const vec2i &to, const vec2i &from);
-      virtual void keypress(ImGui3DWidget *widget, int32_t key);
       virtual void button(ImGui3DWidget *widget, const vec2i &pos) {}
       MoveMode(ImGui3DWidget *widget) : Manipulator(widget) {}
     };

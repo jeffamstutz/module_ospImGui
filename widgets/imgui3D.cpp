@@ -550,27 +550,6 @@ namespace ospray {
       , pivot(ospcommon::center(widget->worldBounds))
     {}
 
-    void InspectCenter::keypress(ImGui3DWidget *widget,
-                                 int32_t key)
-    {
-      switch(key) {
-      case 'a': {
-        rotate(+10.f*widget->rotateSpeed,0);
-      } return;
-      case 'd': {
-        rotate(-10.f*widget->rotateSpeed,0);
-      } return;
-      case 'w': {
-        rotate(0,+10.f*widget->rotateSpeed);
-      } return;
-      case 's': {
-        rotate(0,-10.f*widget->rotateSpeed);
-      } return;
-      }
-
-      Manipulator::keypress(widget,key);
-    }
-
     void InspectCenter::button(ImGui3DWidget *widget, const vec2i &pos)
     {
     }
@@ -657,53 +636,6 @@ namespace ospray {
     // MOVE_MOVE manipulator - TODO.
     // ------------------------------------------------------------------
 
-    /*! \brief key press events for move mode
-
-      Right now, recognizes the following move modes:
-
-      - w : move forward
-      - s : move backward
-      - a : pan left
-      - d : pan right
-
-    */
-    void MoveMode::keypress(ImGui3DWidget *widget,
-                            int32_t key)
-    {
-      ImGui3DWidget::ViewPort &cam = widget->viewPort;
-      switch(key) {
-      case 'w': {
-        float fwd = 8 * widget->motionSpeed;
-        cam.from = cam.from + fwd * cam.frame.l.vy;
-        cam.at   = cam.at   + fwd * cam.frame.l.vy;
-        cam.frame.p = cam.from;
-        cam.modified = true;
-      } return;
-      case 's': {
-        float fwd = 8 * widget->motionSpeed;
-        cam.from = cam.from - fwd * cam.frame.l.vy;
-        cam.at   = cam.at   - fwd * cam.frame.l.vy;
-        cam.frame.p = cam.from;
-        cam.modified = true;
-      } return;
-      case 'd': {
-        float fwd = 8 * widget->motionSpeed;
-        cam.from = cam.from + fwd * cam.frame.l.vx;
-        cam.at   = cam.at   + fwd * cam.frame.l.vx;
-        cam.frame.p = cam.from;
-        cam.modified = true;
-      } return;
-      case 'a': {
-        float fwd = 8 * widget->motionSpeed;
-        cam.from = cam.from - fwd * cam.frame.l.vx;
-        cam.at   = cam.at   - fwd * cam.frame.l.vx;
-        cam.frame.p = cam.from;
-        cam.modified = true;
-      } return;
-      }
-      Manipulator::keypress(widget,key);
-    }
-
     void MoveMode::dragRight(ImGui3DWidget *widget,
                              const vec2i &to, const vec2i &from)
     {
@@ -760,7 +692,8 @@ namespace ospray {
 
     void ImGui3DWidget::keypress(char key)
     {
-      if (key == '!') {
+      switch (key) {
+      case '!': {
         if (ImGui3DWidget::animating) {
           dumpScreensDuringAnimation = !dumpScreensDuringAnimation;
         } else {
@@ -782,38 +715,38 @@ namespace ospray {
             saveFrameBufferToFile(fileName,ucharFB,windowSize.x,windowSize.y);
           return;
         }
-      } else if (key == 'C') {
-        PRINT(viewPort);
-      } else if (key == 'g') {
-        showGui = !showGui;
-      } else if (key == 'I' && inspectCenterManipulator) {
-        // 'i'nspect mode
-        manipulator = inspectCenterManipulator;
-      } else if ((key == 'M' || key == 'F') && moveModeManipulator) {
-        manipulator = moveModeManipulator;
-      } else if (key == 'F' && moveModeManipulator) {
-        // 'f'ly mode
-        manipulator = moveModeManipulator;
-      } else if (key == 'A' && inspectCenterManipulator) {
-        ImGui3DWidget::animating = !ImGui3DWidget::animating;
-      } else if (key == '+') {
-        motionSpeed *= 1.5f; 
-        std::cout << "glut3d: new motion speed " << motionSpeed << std:: endl;
-      } else if (key == '-') {
-        motionSpeed /= 1.5f; 
-        std::cout << "glut3d: new motion speed " << motionSpeed << std:: endl;
-      } else if (manipulator) {
-        manipulator->keypress(this,key);
-      }
-    }
 
-    void Manipulator::keypress(ImGui3DWidget *widget, const int32_t key)
-    {
-      switch(key) {
+        break;
+      }
+      case 'C':
+        PRINT(viewPort);
+        break;
+      case 'g':
+        showGui = !showGui;
+        break;
+      case 'I':
+        manipulator = inspectCenterManipulator;
+        break;
+      case 'M':
+      case 'F':
+        manipulator = moveModeManipulator;
+        break;
+      case 'A':
+        ImGui3DWidget::animating = !ImGui3DWidget::animating;
+        break;
+      case '+':
+        motionSpeed *= 1.5f; 
+        break;
+      case '-':
+        motionSpeed /= 1.5f; 
+        break;
       case 27 /*ESC*/:
       case 'q':
       case 'Q':
         std::exit(0);
+        break;
+      default:
+        break;
       }
     }
 
