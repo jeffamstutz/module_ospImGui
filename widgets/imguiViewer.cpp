@@ -323,29 +323,39 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
 
 void ImGuiViewer::buildGui()
 {
-  static bool show_another_window = false;
+  static bool show_renderer_window = false;
 
-  ImVec4 clear_color = ImColor(114, 144, 154);
+  static ImVec4 bg_color = ImColor(255, 255, 255);
 
-  // 1. Show a simple window
-  // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears
-  //      in a window automatically called "Debug"
   {
-    if (ImGui::Button("Another Window")) show_another_window ^= 1;
-    if (ImGui::Button("Auto Rotate")) animating ^= 1;
+    ImGui::Begin("Viewer Controls: press 'g' to show/hide");
+    if (ImGui::Button("Edit Renderer Parameters")) show_renderer_window ^= 1;
+    if (ImGui::Button("      Auto Rotate       ")) animating ^= 1;
+
+    ImGui::NewLine();
     ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
     ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
+    ImGui::NewLine();
+
+    if (ImGui::Button("Quit")) std::exit(0);
+
+    ImGui::End();
   }
 
   // 2. Show another window, this time using an explicit Begin/End pair
-  if (show_another_window)
+  if (show_renderer_window)
   {
     ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
-    ImGui::Begin("Another Window", &show_another_window);
+    ImGui::Begin("Renderer Parameters", &show_renderer_window);
 
     static float f = 0.0f;
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    ImGui::ColorEdit3("clear color", (float*)&clear_color);
+    ImGui::ColorEdit3("bg_color", (float*)&bg_color);
+    if (ImGui::Button("Set bg_color")) {
+      renderer.set("bgColor", bg_color.x, bg_color.y, bg_color.z);
+      renderer.commit();
+      resetAccumulation();
+    }
 
     ImGui::End();
   }
