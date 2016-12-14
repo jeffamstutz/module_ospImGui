@@ -326,14 +326,18 @@ void ImGuiViewer::buildGui()
 {
   ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar;
 
-  static bool p_open = true;
+  static bool demo_window = false;
 
-  ImGui::Begin("Viewer Controls: press 'g' to show/hide", &p_open, flags);
+  ImGui::Begin("Viewer Controls: press 'g' to show/hide", nullptr, flags);
 
   if (ImGui::BeginMenuBar())
   {
     if (ImGui::BeginMenu("Options"))
     {
+#if 1
+      ImGui::Checkbox("Show ImGui Demo Window", &demo_window);
+#endif
+
       ImGui::Checkbox("Auto-Rotate", &animating);
       if (ImGui::MenuItem("Quit")) std::exit(0);
       ImGui::EndMenu();
@@ -342,11 +346,7 @@ void ImGuiViewer::buildGui()
     ImGui::EndMenuBar();
   }
 
-#if 0
-    static bool test = false;
-    if (ImGui::Button("Show ImGui Demo Window")) test = true;
-    if (test) ImGui::ShowTestWindow(&test);
-#endif
+  if (demo_window) ImGui::ShowTestWindow(&demo_window);
 
   if (ImGui::CollapsingHeader("FPS Statistics", "FPS Statistics", true, true))
   {
