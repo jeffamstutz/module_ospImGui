@@ -62,7 +62,7 @@ int main(int ac, const char **av)
   window.setScale(scale);
   window.setLockFirstAnimationFrame(lockFirstFrame);
   window.setTranslation(translate);
-  window.create("ospImGui: OSPRay Viewer");
+  window.create("ospImGui: OSPRay ImGui Viewer App");
 
   ospray::imgui3D::run();
 }

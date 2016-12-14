@@ -334,7 +334,7 @@ void ImGuiViewer::buildGui()
     if (ImGui::Button("Another Window")) show_another_window ^= 1;
     if (ImGui::Button("Auto Rotate")) animating ^= 1;
     ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
-    ImGui::Text("   display (avg) rate: %.1f FPS", ImGui::GetIO().Framerate);
+    ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
   }
 
   // 2. Show another window, this time using an explicit Begin/End pair
