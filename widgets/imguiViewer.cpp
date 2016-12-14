@@ -219,15 +219,6 @@ void ImGuiViewer::display()
 {
   if (!frameBuffer.handle() || !renderer.handle() ) return;
 
-  //{
-  // note that the order of 'start' and 'end' here is
-  // (intentionally) reversed: due to our asynchrounous rendering
-  // you cannot place start() and end() _around_ the renderframe
-  // call (which in itself will not do a lot other than triggering
-  // work), but the average time between the two calls is roughly the
-  // frame rate (including display overhead, of course)
-  if (frameID > 0) fps.doneRender();
-
   // NOTE: consume a new renderer if one has been queued by another thread
   switchRenderers();
 
@@ -256,8 +247,8 @@ void ImGuiViewer::display()
   }
 
   fps.startRender();
-
   renderer.renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
+  fps.doneRender();
 
   // set the glut3d widget's frame buffer to the opsray frame buffer,
   // then display
@@ -269,15 +260,6 @@ void ImGuiViewer::display()
 
   // that pointer is no longer valid, so set it to null
   ucharFB = nullptr;
-
-  std::string title("OSPRay ImGui Viewer");
-
-  if (alwaysRedraw) {
-    title += " (" + std::to_string((long double)fps.getFPS()) + " fps)";
-    setTitle(title);
-  } else {
-    setTitle(title);
-  }
 }
 
 void ImGuiViewer::switchRenderers()
@@ -351,9 +333,8 @@ void ImGuiViewer::buildGui()
   {
     if (ImGui::Button("Another Window")) show_another_window ^= 1;
     if (ImGui::Button("Auto Rotate")) animating ^= 1;
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                1000.0f / ImGui::GetIO().Framerate,
-                ImGui::GetIO().Framerate);
+    ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
+    ImGui::Text("   display (avg) rate: %.1f FPS", ImGui::GetIO().Framerate);
   }
 
   // 2. Show another window, this time using an explicit Begin/End pair
