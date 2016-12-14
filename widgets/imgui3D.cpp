@@ -550,10 +550,6 @@ namespace ospray {
       , pivot(ospcommon::center(widget->worldBounds))
     {}
 
-    void InspectCenter::button(ImGui3DWidget *widget, const vec2i &pos)
-    {
-    }
-
     void InspectCenter::rotate(float du, float dv)
     {
       ImGui3DWidget::ViewPort &cam = widget->viewPort;

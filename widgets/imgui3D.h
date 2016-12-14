@@ -59,33 +59,28 @@ namespace ospray {
       Manipulator(ImGui3DWidget *widget)
         : widget(widget) {}
 
-    protected:
-
       // helper functions called from the default 'motion' fct
       virtual void dragLeft(ImGui3DWidget *widget,
                             const vec2i &to,
-                            const vec2i &from)
-      {}
+                            const vec2i &from) {}
       virtual void dragRight(ImGui3DWidget *widget,
                              const vec2i &to,
-                             const vec2i &from)
-      {}
+                             const vec2i &from) {}
       virtual void dragMiddle(ImGui3DWidget *widget,
                               const vec2i &to,
-                              const vec2i &from)
-      {}
+                              const vec2i &from) {}
+
       ImGui3DWidget *widget;
     };
 
     struct InspectCenter : public Manipulator
     {
-      virtual void dragLeft(ImGui3DWidget *widget,
-                            const vec2i &to, const vec2i &from);
-      virtual void dragRight(ImGui3DWidget *widget,
-                             const vec2i &to, const vec2i &from);
-      virtual void dragMiddle(ImGui3DWidget *widget,
-                              const vec2i &to, const vec2i &from);
-      virtual void button(ImGui3DWidget *widget, const vec2i &pos);
+      void dragLeft(ImGui3DWidget *widget,
+                    const vec2i &to, const vec2i &from) override;
+      void dragRight(ImGui3DWidget *widget,
+                     const vec2i &to, const vec2i &from) override;
+      void dragMiddle(ImGui3DWidget *widget,
+                      const vec2i &to, const vec2i &from) override;
       InspectCenter(ImGui3DWidget *widget);
       void rotate(float du, float dv);
 
@@ -94,13 +89,12 @@ namespace ospray {
 
     struct MoveMode : public Manipulator
     {
-      virtual void dragLeft(ImGui3DWidget *widget,
-                            const vec2i &to, const vec2i &from);
-      virtual void dragRight(ImGui3DWidget *widget,
-                             const vec2i &to, const vec2i &from);
-      virtual void dragMiddle(ImGui3DWidget *widget,
-                              const vec2i &to, const vec2i &from);
-      virtual void button(ImGui3DWidget *widget, const vec2i &pos) {}
+      void dragLeft(ImGui3DWidget *widget,
+                    const vec2i &to, const vec2i &from) override;
+      void dragRight(ImGui3DWidget *widget,
+                     const vec2i &to, const vec2i &from) override;
+      void dragMiddle(ImGui3DWidget *widget,
+                      const vec2i &to, const vec2i &from) override;
       MoveMode(ImGui3DWidget *widget) : Manipulator(widget) {}
     };
 
