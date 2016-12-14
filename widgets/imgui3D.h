@@ -227,7 +227,6 @@ namespace ospray {
        ViewPort viewPort;
        box3f  worldBounds; /*!< world bounds, to automatically set viewPort
                              lookat, mouse speed, etc */
-       int32_t windowID;
        vec2i windowSize;
        /*! camera speed modifier - affects how many units the camera
           _moves_ with each unit on the screen */
@@ -256,7 +255,7 @@ namespace ospray {
 
        GLFWwindow *window {nullptr};
 
-       virtual void keypress(char key, const vec2i &where);
+       virtual void keypress(char key);
     };
 
     OSPRAY_IMGUI3D_INTERFACE std::ostream &operator<<(std::ostream &o,

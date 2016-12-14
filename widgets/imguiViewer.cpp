@@ -156,7 +156,7 @@ void ImGuiViewer::reshape(const vec2i &newSize)
   viewPort.modified = true;
 }
 
-void ImGuiViewer::keypress(char key, const vec2i &where)
+void ImGuiViewer::keypress(char key)
 {
   switch (key) {
   case ' ':
@@ -211,7 +211,7 @@ void ImGuiViewer::keypress(char key, const vec2i &where)
     printViewport();
     break;
   default:
-    ImGui3DWidget::keypress(key,where);
+    ImGui3DWidget::keypress(key);
   }
 }
 

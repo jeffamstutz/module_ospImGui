@@ -146,7 +146,6 @@ namespace ospray {
                                  int allowedManipulators) :
       lastMousePos(-1,-1),
       currMousePos(-1,-1),
-      windowID(-1),
       windowSize(-1,-1),
       motionSpeed(.003f),
       rotateSpeed(.003f),
@@ -351,6 +350,17 @@ namespace ospray {
         window,
         [](GLFWwindow*, int button, int action, int mods) {
           ImGui3DWidget::activeWindow->currButton[button] = action;
+        }
+      );
+
+      glfwSetCharCallback(
+        window,
+       [](GLFWwindow*, unsigned int c) {
+          ImGuiIO& io = ImGui::GetIO();
+          if (c > 0 && c < 0x10000)
+            io.AddInputCharacter((unsigned short)c);
+
+          ImGui3DWidget::activeWindow->keypress(c);
         }
       );
 
@@ -741,7 +751,7 @@ namespace ospray {
       cam.modified = true;
     }
 
-    void ImGui3DWidget::keypress(char key, const vec2i &where)
+    void ImGui3DWidget::keypress(char key)
     {
       if (key == '!') {
         if (ImGui3DWidget::animating) {

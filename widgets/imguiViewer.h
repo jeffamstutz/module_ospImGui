@@ -61,7 +61,7 @@ namespace ospray {
   protected:
 
     virtual void reshape(const ospcommon::vec2i &newSize) override;
-    virtual void keypress(char key, const ospcommon::vec2i &where) override;
+    virtual void keypress(char key) override;
     virtual void updateAnimation(double deltaSeconds);
 
     virtual void buildGui() override;
