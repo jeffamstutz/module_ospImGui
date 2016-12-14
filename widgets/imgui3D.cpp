@@ -139,7 +139,7 @@ namespace ospray {
     void ImGui3DWidget::motion(const vec2i &pos)
     {
       currMousePos = pos;
-      manipulator->motion(this);
+      if (!renderingPaused) manipulator->motion(this);
       lastMousePos = currMousePos;
     }
 

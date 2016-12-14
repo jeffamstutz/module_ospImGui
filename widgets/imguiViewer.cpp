@@ -248,7 +248,8 @@ void ImGuiViewer::display()
   }
 
   fps.startRender();
-  renderer.renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
+  if (!renderingPaused)
+    renderer.renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
   fps.doneRender();
 
   // set the glut3d widget's frame buffer to the opsray frame buffer,
@@ -339,23 +340,27 @@ void ImGuiViewer::buildGui()
 #endif
 
       ImGui::Checkbox("Auto-Rotate", &animating);
+      ImGui::Checkbox("Pause Rendering", &renderingPaused);
+      if (ImGui::MenuItem("Take Screenshot")) saveScreenshot("ospimguiviewer");
       if (ImGui::MenuItem("Quit")) std::exit(0);
       ImGui::EndMenu();
     }
 
-    if (ImGui::BeginMenu("Camera"))
+    if (ImGui::BeginMenu("View"))
     {
-      bool orbitMode = manipulator == inspectCenterManipulator;
-      bool flyMode   = manipulator == moveModeManipulator;
+      bool orbitMode = (manipulator == inspectCenterManipulator);
+      bool flyMode   = (manipulator == moveModeManipulator);
 
-      if (ImGui::Checkbox("Orbit Mode", &orbitMode)) {
+      if (ImGui::Checkbox("Orbit Camera Mode", &orbitMode)) {
         manipulator = inspectCenterManipulator;
       }
-      if (ImGui::Checkbox("Fly Mode", &flyMode)) {
+      if (ImGui::Checkbox("Fly Camera Mode", &flyMode)) {
         manipulator = moveModeManipulator;
       }
 
       if (ImGui::MenuItem("Reset View")) resetView();
+      if (ImGui::MenuItem("Reset Accumulation")) viewPort.modified = true;
+      if (ImGui::MenuItem("Print View")) printViewport();
 
       ImGui::EndMenu();
     }
