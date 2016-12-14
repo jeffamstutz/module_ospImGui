@@ -299,9 +299,6 @@ namespace ospray {
     {
       windowSize = newSize;
       viewPort.aspect = newSize.x/float(newSize.y);
-#if 0
-      glViewport(0, 0, windowSize.x, windowSize.y);
-#endif
     }
 
     void ImGui3DWidget::activate()
@@ -342,7 +339,7 @@ namespace ospray {
       }
     }
 
-    void ImGui3DWidget::renderGui()
+    void ImGui3DWidget::buildGui()
     {
       bool show_test_window = true;
       bool show_another_window = false;
@@ -471,11 +468,11 @@ namespace ospray {
     void run()
     {
       if (!currentWidget)
-        throw std::runtime_error("You must create a the ImGuiViewer window!");
+        throw std::runtime_error("ImGuiViewer window not created/set!");
 
       auto *window = currentWidget->window;
 
-      ImVec4 clear_color = ImColor(114, 144, 154);
+      int display_w = 0, display_h = 0;
 
       // Main loop
       while (!glfwWindowShouldClose(window))
@@ -483,16 +480,27 @@ namespace ospray {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-        currentWidget->renderGui();
+        currentWidget->buildGui();
 
-        // Rendering
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        int new_w = 0, new_h = 0;
+        glfwGetFramebufferSize(window, &new_w, &new_h);
+
+        if (new_w != display_w || new_h != display_h)
+        {
+          display_w = new_w;
+          display_h = new_h;
+          currentWidget->reshape(vec2i(display_w, display_h));
+        }
+
+        glViewport(0, 0, new_w, new_h);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // Render OSPRay frame
         currentWidget->display();
+
+        // Render GUI
         ImGui::Render();
+
         glfwSwapBuffers(window);
       }
 

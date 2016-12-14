@@ -209,7 +209,7 @@ namespace ospray {
            to do something more useful */
        virtual void display();
 
-       void renderGui();
+       void buildGui();
 
        // ------------------------------------------------------------------
        // helper functions
