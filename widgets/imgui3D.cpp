@@ -105,7 +105,7 @@ namespace ospray {
     ImGui3DWidget *ImGui3DWidget::activeWindow = nullptr;
     vec2i ImGui3DWidget::defaultInitSize(1024,768);
 
-    bool animating = false;
+    bool ImGui3DWidget::animating = false;
 
     // InspectCenter Glut3DWidget::INSPECT_CENTER;
     /*! viewport as specified on the command line */
@@ -118,11 +118,8 @@ namespace ospray {
 
     void glut3dDisplay()
     {
-      if (animating && ImGui3DWidget::activeWindow &&
+      if (ImGui3DWidget::animating && ImGui3DWidget::activeWindow &&
           ImGui3DWidget::activeWindow->inspectCenterManipulator) {
-        auto *hack =
-            (InspectCenter*)ImGui3DWidget::activeWindow->inspectCenterManipulator;
-        hack->rotate(-10.f * ImGui3DWidget::activeWindow->motionSpeed, 0);
       }
       if (ImGui3DWidget::activeWindow)
         ImGui3DWidget::activeWindow->display();
@@ -231,6 +228,11 @@ namespace ospray {
       frameBufferMode(frameBufferMode),
       ucharFB(nullptr)
     {
+      if (activeWindow != nullptr)
+        throw std::runtime_error("ERROR: Can't create more than one ImGui3DWidget!");
+
+      activeWindow = this;
+
       worldBounds.lower = vec3f(-1);
       worldBounds.upper = vec3f(+1);
 
@@ -296,11 +298,17 @@ namespace ospray {
 
     void ImGui3DWidget::display()
     {
+      if (animating) {
+        auto *hack =
+            (InspectCenter*)ImGui3DWidget::activeWindow->inspectCenterManipulator;
+        hack->rotate(-10.f * ImGui3DWidget::activeWindow->motionSpeed, 0);
+      }
+
       if (frameBufferMode == ImGui3DWidget::FRAMEBUFFER_UCHAR && ucharFB) {
         glDrawPixels(windowSize.x, windowSize.y,
                      GL_RGBA, GL_UNSIGNED_BYTE, ucharFB);
 #ifndef _WIN32
-        if (animating && dumpScreensDuringAnimation) {
+        if (ImGui3DWidget::animating && dumpScreensDuringAnimation) {
           char tmpFileName[] = "/tmp/ospray_scene_dump_file.XXXXXXXXXX";
           static const char *dumpFileRoot;
           if (!dumpFileRoot) 
@@ -846,7 +854,7 @@ namespace ospray {
     void ImGui3DWidget::keypress(char key, const vec2i &where)
     {
       if (key == '!') {
-        if (animating) {
+        if (ImGui3DWidget::animating) {
           dumpScreensDuringAnimation = !dumpScreensDuringAnimation;
         } else {
           char tmpFileName[] = "/tmp/ospray_screen_dump_file.XXXXXXXX";
@@ -888,7 +896,7 @@ namespace ospray {
         return;
       }
       if (key == 'A' && inspectCenterManipulator) {
-        animating = !animating;
+        ImGui3DWidget::animating = !ImGui3DWidget::animating;
         return;
       }
       if (key == '+') { 
