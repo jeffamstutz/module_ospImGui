@@ -341,7 +341,7 @@ void ImGuiViewer::buildGui()
 
   if (show_renderer_window)
   {
-    ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 350), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Renderer Parameters", &show_renderer_window);
 
     bool renderer_changed = false;
@@ -354,6 +354,30 @@ void ImGuiViewer::buildGui()
 
     if (ImGui::InputFloat("aoDistance", &aoDistance)) {
       renderer.set("aoDistance", aoDistance);
+      renderer_changed = true;
+    }
+
+    static bool shadows = true;
+    if (ImGui::Checkbox("shadows", &shadows)) {
+      renderer.set("shadowsEnabled", int(shadows));
+      renderer_changed = true;
+    }
+
+    static bool singleSidedLighting = true;
+    if (ImGui::Checkbox("single_sided_lighting", &singleSidedLighting)) {
+      renderer.set("oneSidedLighting", int(singleSidedLighting));
+      renderer_changed = true;
+    }
+
+    static float epsilon = 1e-6f;
+    if (ImGui::InputFloat("ray_epsilon", &epsilon)) {
+      renderer.set("epsilon", epsilon);
+      renderer_changed = true;
+    }
+
+    static int spp = 1;
+    if (ImGui::SliderInt("spp", &spp, -4, 16)) {
+      renderer.set("spp", spp);
       renderer_changed = true;
     }
 
