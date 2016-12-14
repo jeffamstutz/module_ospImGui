@@ -137,7 +137,8 @@ void ImGuiViewer::saveScreenshot(const std::string &basename)
 
 void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
   ImGui3DWidget::setWorldBounds(worldBounds);
-  renderer.set("aoDistance", (worldBounds.upper.x - worldBounds.lower.x)/4.f);
+  aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
+  renderer.set("aoDistance", aoDistance);
   renderer.commit();
 }
 
@@ -325,34 +326,44 @@ void ImGuiViewer::buildGui()
 {
   static bool show_renderer_window = false;
 
-  static ImVec4 bg_color = ImColor(255, 255, 255);
+  ImGui::Begin("Viewer Controls: press 'g' to show/hide");
+  if (ImGui::Button("Edit Renderer Parameters")) show_renderer_window ^= 1;
+  if (ImGui::Button("      Auto Rotate       ")) animating ^= 1;
 
-  {
-    ImGui::Begin("Viewer Controls: press 'g' to show/hide");
-    if (ImGui::Button("Edit Renderer Parameters")) show_renderer_window ^= 1;
-    if (ImGui::Button("      Auto Rotate       ")) animating ^= 1;
+  ImGui::NewLine();
+  ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
+  ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
+  ImGui::NewLine();
 
-    ImGui::NewLine();
-    ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
-    ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
-    ImGui::NewLine();
+  if (ImGui::Button("Quit")) std::exit(0);
 
-    if (ImGui::Button("Quit")) std::exit(0);
+  ImGui::End();
 
-    ImGui::End();
-  }
-
-  // 2. Show another window, this time using an explicit Begin/End pair
   if (show_renderer_window)
   {
     ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Renderer Parameters", &show_renderer_window);
 
-    static float f = 0.0f;
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    ImGui::ColorEdit3("bg_color", (float*)&bg_color);
-    if (ImGui::Button("Set bg_color")) {
+    bool renderer_changed = false;
+
+    static int ao = 1;
+    if (ImGui::SliderInt("aoSamples", &ao, 0, 32)) {
+      renderer.set("aoSamples", ao);
+      renderer_changed = true;
+    }
+
+    if (ImGui::InputFloat("aoDistance", &aoDistance)) {
+      renderer.set("aoDistance", aoDistance);
+      renderer_changed = true;
+    }
+
+    static ImVec4 bg_color = ImColor(255, 255, 255);
+    if (ImGui::ColorEdit3("bg_color", (float*)&bg_color)) {
       renderer.set("bgColor", bg_color.x, bg_color.y, bg_color.z);
+      renderer_changed = true;
+    }
+
+    if (renderer_changed) {
       renderer.commit();
       resetAccumulation();
     }

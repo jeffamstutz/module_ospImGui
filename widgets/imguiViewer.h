@@ -99,6 +99,8 @@ namespace ospray {
     ospcommon::vec3f translate;
     ospcommon::vec3f scale;
     int frameID={0};
+
+    float aoDistance {1e20f};
   };
 
 }// namespace ospray
