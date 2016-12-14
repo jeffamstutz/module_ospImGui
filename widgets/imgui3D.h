@@ -187,10 +187,7 @@ namespace ospray {
          top left front */
        virtual void setWorldBounds(const box3f &worldBounds);
        /*! set window title */
-        void setTitle(const char *title);
-       /*! set window title */
-        void setTitle(const std::string &title)
-       { setTitle(title.c_str()); }
+        void setTitle(const std::string &title);
        /*! set viewport to given values */
        void setViewPort(const vec3f from, const vec3f at, const vec3f up);
 
@@ -198,9 +195,8 @@ namespace ospray {
        // event handling - override this to change this widgets behavior
        // to input events
        // ------------------------------------------------------------------
-       virtual void mouseButton(int32_t which,
-                                                       bool released,
-                                                       const vec2i &pos);
+
+       virtual void mouseButton(int32_t which, bool released, const vec2i &pos);
        virtual void motion(const vec2i &pos);
        virtual void reshape(const vec2i &newSize);
        virtual void idle();
@@ -209,14 +205,11 @@ namespace ospray {
            to do something more useful */
        virtual void display();
 
-       void buildGui();
+       virtual void buildGui();
 
        // ------------------------------------------------------------------
        // helper functions
        // ------------------------------------------------------------------
-       /*! activate _this_ window, in the sense that all future glut
-         events get routed to this window instance */
-       virtual void activate();
        /*! create this window. Note that this just *creates* the window,
          but glut will not do anything else with this window before
          'run' got called */
@@ -269,14 +262,6 @@ namespace ospray {
        };
 
        GLFWwindow *window {nullptr};
-
-       friend void glut3dReshape(int32_t x, int32_t y);
-       friend void glut3dDisplay(void);
-       friend void glut3dKeyboard(char key, int32_t x, int32_t y);
-       friend void glut3dIdle(void);
-       friend void glut3dMotionFunc(int32_t x, int32_t y);
-       friend void glut3dMouseFunc(int32_t whichButton, int32_t released,
-                                   int32_t x, int32_t y);
 
        virtual void keypress(char key, const vec2i &where);
        virtual void specialkey(int32_t key, const vec2i &where);

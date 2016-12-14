@@ -66,6 +66,8 @@ namespace ospray {
                              const ospcommon::vec2i &pos) override;
     virtual void updateAnimation(double deltaSeconds);
 
+    virtual void buildGui() override;
+
     void display() override;
 
     void switchRenderers();
