@@ -332,7 +332,7 @@ void ImGuiViewer::buildGui()
 
   if (ImGui::BeginMenuBar())
   {
-    if (ImGui::BeginMenu("Options"))
+    if (ImGui::BeginMenu("App"))
     {
 #if 1
       ImGui::Checkbox("Show ImGui Demo Window", &demo_window);
@@ -340,6 +340,23 @@ void ImGuiViewer::buildGui()
 
       ImGui::Checkbox("Auto-Rotate", &animating);
       if (ImGui::MenuItem("Quit")) std::exit(0);
+      ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Camera"))
+    {
+      bool orbitMode = manipulator == inspectCenterManipulator;
+      bool flyMode   = manipulator == moveModeManipulator;
+
+      if (ImGui::Checkbox("Orbit Mode", &orbitMode)) {
+        manipulator = inspectCenterManipulator;
+      }
+      if (ImGui::Checkbox("Fly Mode", &flyMode)) {
+        manipulator = moveModeManipulator;
+      }
+
+      if (ImGui::MenuItem("Reset View")) resetView();
+
       ImGui::EndMenu();
     }
 
