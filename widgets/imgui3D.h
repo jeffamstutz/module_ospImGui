@@ -243,6 +243,7 @@ namespace ospray {
        static ImGui3DWidget *activeWindow;
 
        static bool animating;
+       static bool showGui;
        /*! pointer to the frame buffer data. it is the repsonsiblity of
            the applicatoin derived from this class to properly allocate
            and deallocate the frame buffer pointer */

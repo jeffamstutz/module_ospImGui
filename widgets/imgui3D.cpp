@@ -50,6 +50,8 @@ namespace ospray {
 
     static ImGui3DWidget *currentWidget = nullptr;
 
+    bool ImGui3DWidget::showGui = true;
+
     // Class definitions //////////////////////////////////////////////////////
 
     FPSCounter::FPSCounter()
@@ -384,7 +386,8 @@ namespace ospray {
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-        currentWidget->buildGui();
+        if (ImGui3DWidget::showGui)
+          currentWidget->buildGui();
 
         int new_w = 0, new_h = 0;
         glfwGetFramebufferSize(window, &new_w, &new_h);
@@ -403,7 +406,8 @@ namespace ospray {
         currentWidget->display();
 
         // Render GUI
-        ImGui::Render();
+        if (ImGui3DWidget::showGui)
+          ImGui::Render();
 
         glfwSwapBuffers(window);
       }
@@ -724,8 +728,9 @@ namespace ospray {
       float du = (to.x - from.x);
       float dv = (to.y - from.y);
 
-      auto xfm = AffineSpace3fa::translate( widget->motionSpeed * dv * cam.frame.l.vz )
-        * AffineSpace3fa::translate( -1.0f * widget->motionSpeed * du * cam.frame.l.vx );
+      auto xfm =
+        AffineSpace3fa::translate(widget->motionSpeed * dv * cam.frame.l.vz ) *
+        AffineSpace3fa::translate(-1.0f * widget->motionSpeed * du * cam.frame.l.vx);
 
       cam.frame = xfm * cam.frame;
       cam.from = xfmPoint(xfm, cam.from);
@@ -777,43 +782,30 @@ namespace ospray {
             saveFrameBufferToFile(fileName,ucharFB,windowSize.x,windowSize.y);
           return;
         }
-      } 
-
-      if (key == 'C') {
+      } else if (key == 'C') {
         PRINT(viewPort);
-        return;
-      }
-      if (key == 'I' && inspectCenterManipulator) {
+      } else if (key == 'g') {
+        showGui = !showGui;
+      } else if (key == 'I' && inspectCenterManipulator) {
         // 'i'nspect mode
         manipulator = inspectCenterManipulator;
-        return;
-      }
-      if ((key == 'M' || key == 'F') && moveModeManipulator) {
+      } else if ((key == 'M' || key == 'F') && moveModeManipulator) {
         manipulator = moveModeManipulator;
-        return;
-      }
-      if (key == 'F' && moveModeManipulator) {
+      } else if (key == 'F' && moveModeManipulator) {
         // 'f'ly mode
         manipulator = moveModeManipulator;
-        return;
-      }
-      if (key == 'A' && inspectCenterManipulator) {
+      } else if (key == 'A' && inspectCenterManipulator) {
         ImGui3DWidget::animating = !ImGui3DWidget::animating;
-        return;
-      }
-      if (key == '+') { 
+      } else if (key == '+') {
         motionSpeed *= 1.5f; 
         std::cout << "glut3d: new motion speed " << motionSpeed << std:: endl;
-        return; 
-      }
-      if (key == '-') { 
+      } else if (key == '-') {
         motionSpeed /= 1.5f; 
         std::cout << "glut3d: new motion speed " << motionSpeed << std:: endl;
-        return; 
+      } else if (manipulator) {
+        manipulator->keypress(this,key);
       }
-      if (manipulator) manipulator->keypress(this,key);
     }
-
 
     void Manipulator::keypress(ImGui3DWidget *widget, const int32_t key)
     {
