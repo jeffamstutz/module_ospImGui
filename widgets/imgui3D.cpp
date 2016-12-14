@@ -364,7 +364,8 @@ namespace ospray {
           if (c > 0 && c < 0x10000)
             io.AddInputCharacter((unsigned short)c);
 
-          ImGui3DWidget::activeWindow->keypress(c);
+          if (!io.WantCaptureKeyboard)
+            ImGui3DWidget::activeWindow->keypress(c);
         }
       );
 
