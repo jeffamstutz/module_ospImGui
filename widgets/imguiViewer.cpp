@@ -295,7 +295,7 @@ void ImGuiViewer::display()
   // that pointer is no longer valid, so set it to null
   ucharFB = nullptr;
 
-  std::string title("OSPRay GLUT Viewer");
+  std::string title("OSPRay ImGui Viewer");
 
   if (alwaysRedraw) {
     title += " (" + std::to_string((long double)fps.getFPS()) + " fps)";

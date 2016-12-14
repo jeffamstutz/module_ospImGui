@@ -27,13 +27,12 @@
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #  endif
-#  include <windows.h> // for Sleep
 #  define _USE_MATH_DEFINES
 #  include <math.h> // M_PI
 #else
 #  include <sys/times.h>
-#  include <unistd.h> // for usleep
 #endif
+
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -116,15 +115,6 @@ namespace ospray {
     // glut event handlers
     // ------------------------------------------------------------------
 
-    void glut3dDisplay()
-    {
-      if (ImGui3DWidget::animating && ImGui3DWidget::activeWindow &&
-          ImGui3DWidget::activeWindow->inspectCenterManipulator) {
-      }
-      if (ImGui3DWidget::activeWindow)
-        ImGui3DWidget::activeWindow->display();
-    }
-
     void glut3dKeyboard(unsigned char key, int32_t x, int32_t y)
     {
       if (ImGui3DWidget::activeWindow)
@@ -136,11 +126,6 @@ namespace ospray {
         ImGui3DWidget::activeWindow->specialkey(key,vec2i(x,y));
     }
 
-    void glut3dIdle()
-    {
-      if (ImGui3DWidget::activeWindow)
-        ImGui3DWidget::activeWindow->idle();
-    }
     void glut3dMotionFunc(int32_t x, int32_t y)
     {
       if (ImGui3DWidget::activeWindow)
@@ -279,15 +264,6 @@ namespace ospray {
       viewPort.up = up;
       if (up != vec3f(0.f))
         viewPort.snapUp();
-    }
-
-    void ImGui3DWidget::idle()
-    {
-#ifdef _WIN32
-      Sleep(1);
-#else
-      usleep(1000);
-#endif
     }
 
     void ImGui3DWidget::reshape(const vec2i &newSize)
