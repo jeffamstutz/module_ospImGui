@@ -140,6 +140,7 @@ void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
   renderer.set("aoDistance", (worldBounds.upper.x - worldBounds.lower.x)/4.f);
   renderer.commit();
 }
+
 void ImGuiViewer::reshape(const vec2i &newSize)
 {
   ImGui3DWidget::reshape(newSize);
@@ -212,32 +213,6 @@ void ImGuiViewer::keypress(char key, const vec2i &where)
   default:
     ImGui3DWidget::keypress(key,where);
   }
-}
-
-void ImGuiViewer::mouseButton(int32_t whichButton,
-                              bool released,
-                              const vec2i &pos)
-{
-  ImGui3DWidget::mouseButton(whichButton, released, pos);
-#if 0
-  if((currButtonState ==  (1<<GLUT_LEFT_BUTTON)) &&
-     (glutGetModifiers() & GLUT_ACTIVE_SHIFT)    &&
-     (manipulator == inspectCenterManipulator)) {
-    vec2f normpos = vec2f(pos.x / (float)windowSize.x,
-                          1.0f - pos.y / (float)windowSize.y);
-    OSPPickResult pick;
-    ospPick(&pick, renderer.handle(),
-            osp::vec2f{normpos.x, normpos.y});
-    if(pick.hit) {
-      viewPort.at = ospcommon::vec3f{pick.position.x,
-                                     pick.position.y,
-                                     pick.position.z};
-      viewPort.modified = true;
-      computeFrame();
-      forceRedraw();
-    }
-  }
-#endif
 }
 
 void ImGuiViewer::display()

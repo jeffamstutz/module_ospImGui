@@ -112,34 +112,6 @@ namespace ospray {
     vec3f upVectorFromCmdLine(0,1,0);
 
     // ------------------------------------------------------------------
-    // glut event handlers
-    // ------------------------------------------------------------------
-
-    void glut3dKeyboard(unsigned char key, int32_t x, int32_t y)
-    {
-      if (ImGui3DWidget::activeWindow)
-        ImGui3DWidget::activeWindow->keypress(key,vec2i(x,y));
-    }
-    void glut3dSpecial(int32_t key, int32_t x, int32_t y)
-    {
-      if (ImGui3DWidget::activeWindow)
-        ImGui3DWidget::activeWindow->specialkey(key,vec2i(x,y));
-    }
-
-    void glut3dMotionFunc(int32_t x, int32_t y)
-    {
-      if (ImGui3DWidget::activeWindow)
-        ImGui3DWidget::activeWindow->motion(vec2i(x,y));
-    }
-
-    void glut3dMouseFunc(int32_t whichButton, int32_t released,
-                         int32_t x, int32_t y)
-    {
-      if (ImGui3DWidget::activeWindow)
-        ImGui3DWidget::activeWindow->mouseButton(whichButton,released,vec2i(x,y));
-    }
-
-    // ------------------------------------------------------------------
     // implementation of glut3d::viewPorts
     // ------------------------------------------------------------------
     ImGui3DWidget::ViewPort::ViewPort() :
@@ -162,38 +134,9 @@ namespace ospray {
       frame.l.vy = normalize(cross(frame.l.vz,frame.l.vx));
     }
 
-    // ------------------------------------------------------------------
-    // implementation of glut3d widget
-    // ------------------------------------------------------------------
-    void ImGui3DWidget::mouseButton(int32_t whichButton,
-                                    bool released,
-                                    const vec2i &pos)
-    {
-
-      if (pos != currMousePos)
-        motion(pos);
-      lastButtonState = currButtonState;
-
-      if (released)
-        currButtonState = currButtonState & ~(1<<whichButton);
-      else
-        currButtonState = currButtonState |  (1<<whichButton);
-#if 0
-      currModifiers = glutGetModifiers();
-#endif
-
-      manipulator->button(this, pos);
-    }
-
     void ImGui3DWidget::motion(const vec2i &pos)
     {
       currMousePos = pos;
-      if (currButtonState != lastButtonState) {
-        // some button got pressed; reset 'old' pos to new pos.
-        lastMousePos = currMousePos;
-        lastButtonState = currButtonState;
-      }
-
       manipulator->motion(this);
       lastMousePos = currMousePos;
     }
@@ -203,9 +146,6 @@ namespace ospray {
                                  int allowedManipulators) :
       lastMousePos(-1,-1),
       currMousePos(-1,-1),
-      lastButtonState(0),
-      currButtonState(0),
-      currModifiers(0),
       windowID(-1),
       windowSize(-1,-1),
       motionSpeed(.003f),
@@ -246,6 +186,8 @@ namespace ospray {
         this->worldBounds = worldBounds;
         computeFrame();
       }
+
+      currButton[0] = currButton[1] = currButton[2] = GLFW_RELEASE;
     }
 
     void ImGui3DWidget::computeFrame()
@@ -396,6 +338,21 @@ namespace ospray {
 
       // NOTE(jda) - move key handler registration into this class
       ImGui_ImplGlfwGL3_Init(window, true);
+
+
+      glfwSetCursorPosCallback(
+        window,
+        [](GLFWwindow*, double xpos, double ypos) {
+          ImGui3DWidget::activeWindow->motion(vec2i(xpos, ypos));
+        }
+      );
+
+      glfwSetMouseButtonCallback(
+        window,
+        [](GLFWwindow*, int button, int action, int mods) {
+          ImGui3DWidget::activeWindow->currButton[button] = action;
+        }
+      );
 
       currentWidget = this;
     }
@@ -559,29 +516,14 @@ namespace ospray {
     // ------------------------------------------------------------------
     void Manipulator::motion(ImGui3DWidget *widget)
     {
-#if 0
-      if ((widget->currButtonState == (1<<GLUT_RIGHT_BUTTON))
-          ||
-          ((widget->currButtonState == (1<<GLUT_LEFT_BUTTON)) 
-           && 
-           (widget->currModifiers & GLUT_ACTIVE_ALT))
-          ) {
+      auto &state = widget->currButton;
+      if (state[GLFW_MOUSE_BUTTON_RIGHT] == GLFW_PRESS) {
         dragRight(widget,widget->currMousePos,widget->lastMousePos);
-      } else if ((widget->currButtonState == (1<<GLUT_MIDDLE_BUTTON)) 
-                 ||
-                 ((widget->currButtonState == (1<<GLUT_LEFT_BUTTON)) 
-                  && 
-                  (widget->currModifiers & GLUT_ACTIVE_CTRL))
-                 ) {
+      } else if (state[GLFW_MOUSE_BUTTON_MIDDLE] == GLFW_PRESS) {
         dragMiddle(widget,widget->currMousePos,widget->lastMousePos);
-      } else if (widget->currButtonState == (1<<GLUT_LEFT_BUTTON)) {
+      } else if (state[GLFW_MOUSE_BUTTON_LEFT] == GLFW_PRESS) {
         dragLeft(widget,widget->currMousePos,widget->lastMousePos);
       } 
-#endif
-    }
-
-    void Manipulator::button(ImGui3DWidget *widget, const vec2i &pos)
-    {
     }
 
     // ------------------------------------------------------------------
@@ -631,28 +573,6 @@ namespace ospray {
       cam.at    = xfmPoint(xfm,cam.at);
       cam.snapUp();
       cam.modified = true;
-    }
-
-    void InspectCenter::specialkey(ImGui3DWidget *widget,
-                                   int32_t key)
-    {
-#if 0
-      switch(key) {
-      case GLUT_KEY_LEFT: {
-        rotate(+10.f*widget->rotateSpeed,0);
-      } return;
-      case GLUT_KEY_RIGHT: {
-        rotate(-10.f*widget->rotateSpeed,0);
-      } return;
-      case GLUT_KEY_UP: {
-        rotate(0,+10.f*widget->rotateSpeed);
-      } return;
-      case GLUT_KEY_DOWN: {
-        rotate(0,-10.f*widget->rotateSpeed);
-      } return;
-      }
-#endif
-      Manipulator::specialkey(widget,key);
     }
 
     /*! INSPECT_CENTER::RightButton: move lookfrom/viewPort positoin
@@ -716,8 +636,6 @@ namespace ospray {
       cam.snapUp();
       cam.modified = true;
     }
-
-
 
     // ------------------------------------------------------------------
     // MOVE_MOVE manipulator - TODO.
@@ -794,7 +712,7 @@ namespace ospray {
       float du = (to.x - from.x);
       float dv = (to.y - from.y);
 
-      AffineSpace3fa xfm = AffineSpace3fa::translate( widget->motionSpeed * dv * cam.frame.l.vz )
+      auto xfm = AffineSpace3fa::translate( widget->motionSpeed * dv * cam.frame.l.vz )
         * AffineSpace3fa::translate( -1.0f * widget->motionSpeed * du * cam.frame.l.vx );
 
       cam.frame = xfm * cam.frame;
@@ -823,10 +741,6 @@ namespace ospray {
       cam.modified = true;
     }
 
-    void ImGui3DWidget::specialkey(int32_t key, const vec2i &where)
-    {
-      if (manipulator) manipulator->specialkey(this,key);
-    }
     void ImGui3DWidget::keypress(char key, const vec2i &where)
     {
       if (key == '!') {
@@ -897,10 +811,6 @@ namespace ospray {
       case 'Q':
         std::exit(0);
       }
-    }
-
-    void Manipulator::specialkey(ImGui3DWidget *widget, const int32_t key)
-    {
     }
 
     std::ostream &operator<<(std::ostream &o, const ImGui3DWidget::ViewPort &cam)

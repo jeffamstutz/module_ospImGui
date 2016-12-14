@@ -62,8 +62,6 @@ namespace ospray {
 
     virtual void reshape(const ospcommon::vec2i &newSize) override;
     virtual void keypress(char key, const ospcommon::vec2i &where) override;
-    virtual void mouseButton(int32_t whichButton, bool released,
-                             const ospcommon::vec2i &pos) override;
     virtual void updateAnimation(double deltaSeconds);
 
     virtual void buildGui() override;

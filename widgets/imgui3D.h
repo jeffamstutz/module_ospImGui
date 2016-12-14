@@ -56,15 +56,9 @@ namespace ospray {
       // this is the fct that gets called when the mouse moved in the
       // associated window
       virtual void motion(ImGui3DWidget *widget);
-      // this is the fct that gets called when any mouse button got
-      // pressed or released in the associated window
-      virtual void button(ImGui3DWidget *widget,
-                                                  const vec2i &pos);
       /*! key press handler - override this fct to catch keyboard. */
       virtual void keypress(ImGui3DWidget *widget,
                                                     const int32_t key);
-      virtual void specialkey(ImGui3DWidget *widget,
-                                                      const int32_t key);
       Manipulator(ImGui3DWidget *widget)
         : widget(widget) {}
 
@@ -94,7 +88,6 @@ namespace ospray {
                              const vec2i &to, const vec2i &from);
       virtual void dragMiddle(ImGui3DWidget *widget,
                               const vec2i &to, const vec2i &from);
-      virtual void specialkey(ImGui3DWidget *widget, const int32_t key);
       virtual void keypress(ImGui3DWidget *widget, int32_t key);
       virtual void button(ImGui3DWidget *widget, const vec2i &pos);
       InspectCenter(ImGui3DWidget *widget);
@@ -196,7 +189,6 @@ namespace ospray {
        // to input events
        // ------------------------------------------------------------------
 
-       virtual void mouseButton(int32_t which, bool released, const vec2i &pos);
        virtual void motion(const vec2i &pos);
        virtual void reshape(const vec2i &newSize);
        /*! display this window. By default this will just clear this
@@ -231,7 +223,7 @@ namespace ospray {
        vec2i lastMousePos; /*! last mouse screen position of mouse before
                              current motion */
        vec2i currMousePos; /*! current screen position of mouse */
-       int64_t lastButtonState, currButtonState, currModifiers;
+       int lastButton[3], currButton[3];
        ViewPort viewPort;
        box3f  worldBounds; /*!< world bounds, to automatically set viewPort
                              lookat, mouse speed, etc */
@@ -265,7 +257,6 @@ namespace ospray {
        GLFWwindow *window {nullptr};
 
        virtual void keypress(char key, const vec2i &where);
-       virtual void specialkey(int32_t key, const vec2i &where);
     };
 
     OSPRAY_IMGUI3D_INTERFACE std::ostream &operator<<(std::ostream &o,
