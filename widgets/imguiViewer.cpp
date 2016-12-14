@@ -324,26 +324,40 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
 
 void ImGuiViewer::buildGui()
 {
-  static bool show_renderer_window = false;
+  ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar;
 
-  ImGui::Begin("Viewer Controls: press 'g' to show/hide");
-  if (ImGui::Button("Edit Renderer Parameters")) show_renderer_window ^= 1;
-  if (ImGui::Button("      Auto Rotate       ")) animating ^= 1;
+  static bool p_open = true;
 
-  ImGui::NewLine();
-  ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
-  ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
-  ImGui::NewLine();
+  ImGui::Begin("Viewer Controls: press 'g' to show/hide", &p_open, flags);
 
-  if (ImGui::Button("Quit")) std::exit(0);
-
-  ImGui::End();
-
-  if (show_renderer_window)
+  if (ImGui::BeginMenuBar())
   {
-    ImGui::SetNextWindowSize(ImVec2(200, 350), ImGuiSetCond_FirstUseEver);
-    ImGui::Begin("Renderer Parameters", &show_renderer_window);
+    if (ImGui::BeginMenu("Options"))
+    {
+      ImGui::Checkbox("Auto-Rotate", &animating);
+      if (ImGui::MenuItem("Quit")) std::exit(0);
+      ImGui::EndMenu();
+    }
 
+    ImGui::EndMenuBar();
+  }
+
+#if 0
+    static bool test = false;
+    if (ImGui::Button("Show ImGui Demo Window")) test = true;
+    if (test) ImGui::ShowTestWindow(&test);
+#endif
+
+  if (ImGui::CollapsingHeader("FPS Statistics", "FPS Statistics", true, true))
+  {
+    ImGui::NewLine();
+    ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
+    ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
+    ImGui::NewLine();
+  }
+
+  if (ImGui::CollapsingHeader("Renderer Parameters"))
+  {
     bool renderer_changed = false;
 
     static int ao = 1;
@@ -391,9 +405,9 @@ void ImGuiViewer::buildGui()
       renderer.commit();
       resetAccumulation();
     }
-
-    ImGui::End();
   }
+
+  ImGui::End();
 }
 
 }// namepace ospray
