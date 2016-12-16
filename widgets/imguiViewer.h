@@ -83,8 +83,6 @@ namespace ospray {
     std::mutex rendererMutex;
     cpp::Renderer queuedRenderer;
 
-    bool alwaysRedraw;
-
     ospcommon::vec2i windowSize;
     bool fullScreen;
     imgui3D::ImGui3DWidget::ViewPort glutViewPort;

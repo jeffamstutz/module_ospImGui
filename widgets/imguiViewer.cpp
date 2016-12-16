@@ -65,7 +65,6 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
     renderer(renderer),
     camera(camera),
     queuedRenderer(nullptr),
-    alwaysRedraw(true),
     fullScreen(false),
     worldBounds(worldBounds),
     lockFirstAnimationFrame(false)
@@ -170,7 +169,7 @@ void ImGuiViewer::keypress(char key)
     animationFrameDelta = min(animationFrameDelta+0.01, 1.0); 
     break;
   case 'R':
-    alwaysRedraw = !alwaysRedraw;
+    renderingPaused = !renderingPaused;
     break;
   case '!':
     saveScreenshot("ospimguiviewer");
