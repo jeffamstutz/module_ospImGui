@@ -372,8 +372,8 @@ void ImGuiViewer::buildGui()
   if (ImGui::CollapsingHeader("FPS Statistics", "FPS Statistics", true, true))
   {
     ImGui::NewLine();
-    ImGui::Text("ospRenderFrame() rate: %.1f FPS", fps.getFPS());
-    ImGui::Text("   [avg] display rate: %.1f FPS", ImGui::GetIO().Framerate);
+    ImGui::Text("OSPRay render rate: %.1f FPS", fps.getFPS());
+    ImGui::Text("      display rate: %.1f FPS", 1.f/ImGui::GetIO().DeltaTime);
     ImGui::NewLine();
   }
 
