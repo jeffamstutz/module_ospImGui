@@ -404,9 +404,9 @@ void ImGuiViewer::buildGui()
       renderer_changed = true;
     }
 
-    static float epsilon = 1e-6f;
-    if (ImGui::InputFloat("ray_epsilon", &epsilon)) {
-      renderer.set("epsilon", epsilon);
+    static int exponent = -6;
+    if (ImGui::SliderInt("ray_epsilon (exponent)", &exponent, -10, 2)) {
+      renderer.set("epsilon", ospcommon::pow(10.f, (float)exponent));
       renderer_changed = true;
     }
 
