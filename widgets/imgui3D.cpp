@@ -492,8 +492,6 @@ namespace ospray {
           removeArgs(*ac,(char **&)av, i, 2); --i;
           continue;
         } if (arg == "-vu") {
-          if (!viewPortFromCmdLine)
-            viewPortFromCmdLine = new ImGui3DWidget::ViewPort;
           upVectorFromCmdLine.x = atof(av[i+1]);
           upVectorFromCmdLine.y = atof(av[i+2]);
           upVectorFromCmdLine.z = atof(av[i+3]);
