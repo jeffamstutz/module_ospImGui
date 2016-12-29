@@ -1,5 +1,5 @@
 ## ======================================================================== ##
-## Copyright 2009-2017 Intel Corporation                                    ##
+## Copyright 2009-2016 Intel Corporation                                    ##
 ##                                                                          ##
 ## Licensed under the Apache License, Version 2.0 (the "License");          ##
 ## you may not use this file except in compliance with the License.         ##
@@ -14,33 +14,5 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-if (NOT WIN32)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-endif()
-
-##############################################################
-# Build GLFW
-##############################################################
-
-set(GLFW_BUILD_DOCS     OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(glfw)
-
-##############################################################
-# Build gl3w
-##############################################################
-
-add_subdirectory(gl3w)
-
-##############################################################
-# Build imgui
-##############################################################
-
-add_subdirectory(imgui)
-
-##############################################################
-# Build ospImGui utilities
-##############################################################
-
-add_subdirectory(util)
+#ospray_create_library(ospray_imgui_util
+#)

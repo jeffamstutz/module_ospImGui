@@ -26,6 +26,8 @@
 #include <ospray_cpp/Model.h>
 #include <ospray_cpp/Renderer.h>
 
+#include "../common/util/fenced_property.h"
+
 #include "imgui3D.h"
 #include "Imgui3dExport.h"
 
@@ -75,13 +77,11 @@ namespace ospray {
     std::deque<cpp::Model>       sceneModels;
     std::deque<ospcommon::box3f> worldBounds;
     cpp::FrameBuffer frameBuffer;
-    cpp::Renderer    renderer;
     cpp::Camera      camera;
 
-    ospray::imgui3D::FPSCounter fps;
+    fenced_property<cpp::Renderer> renderer;
 
-    std::mutex rendererMutex;
-    cpp::Renderer queuedRenderer;
+    ospray::imgui3D::FPSCounter fps;
 
     ospcommon::vec2i windowSize;
     bool fullScreen;

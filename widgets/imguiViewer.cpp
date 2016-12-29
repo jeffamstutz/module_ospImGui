@@ -64,7 +64,6 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
     frameBuffer(nullptr),
     renderer(renderer),
     camera(camera),
-    queuedRenderer(nullptr),
     fullScreen(false),
     worldBounds(worldBounds),
     lockFirstAnimationFrame(false)
@@ -88,8 +87,7 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
 
 void ImGuiViewer::setRenderer(OSPRenderer renderer)
 {
-  lock_guard<mutex> lock{rendererMutex};
-  queuedRenderer = renderer;
+  this->renderer = renderer;
 }
 
 void ImGuiViewer::resetAccumulation()
@@ -137,8 +135,8 @@ void ImGuiViewer::saveScreenshot(const std::string &basename)
 void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
   ImGui3DWidget::setWorldBounds(worldBounds);
   aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
-  renderer.set("aoDistance", aoDistance);
-  renderer.commit();
+  renderer.ref().set("aoDistance", aoDistance);
+  renderer.ref().commit();
 }
 
 void ImGuiViewer::reshape(const vec2i &newSize)
@@ -217,7 +215,7 @@ void ImGuiViewer::keypress(char key)
 
 void ImGuiViewer::display()
 {
-  if (!frameBuffer.handle() || !renderer.handle() ) return;
+  if (!frameBuffer.handle() || !renderer.ref().handle() ) return;
 
   // NOTE: consume a new renderer if one has been queued by another thread
   switchRenderers();
@@ -248,7 +246,7 @@ void ImGuiViewer::display()
 
   fps.startRender();
   if (!renderingPaused)
-    renderer.renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
+    renderer.ref().renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
   fps.doneRender();
 
   // set the glut3d widget's frame buffer to the opsray frame buffer,
@@ -265,13 +263,7 @@ void ImGuiViewer::display()
 
 void ImGuiViewer::switchRenderers()
 {
-  lock_guard<mutex> lock{rendererMutex};
-
-  if (queuedRenderer.handle()) {
-    renderer = queuedRenderer;
-    queuedRenderer = nullptr;
-    frameBuffer.clear(OSP_FB_ACCUM);
-  }
+  renderer.update();
 }
 
 void ImGuiViewer::updateAnimation(double deltaSeconds)
@@ -311,13 +303,13 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
       worldModel.addGeometry(staticInst);
       worldModel.addGeometry(dynInst);
       worldModel.commit();
-      renderer.set("model",  worldModel);
+      renderer.ref().set("model",  worldModel);
     }
     else
     {
-      renderer.set("model",  sceneModels[dataFrameId]);
+      renderer.ref().set("model",  sceneModels[dataFrameId]);
     }
-    renderer.commit();
+    renderer.ref().commit();
     resetAccumulation();
   }
 }
@@ -383,47 +375,47 @@ void ImGuiViewer::buildGui()
 
     static int ao = 1;
     if (ImGui::SliderInt("aoSamples", &ao, 0, 32)) {
-      renderer.set("aoSamples", ao);
+      renderer.ref().set("aoSamples", ao);
       renderer_changed = true;
     }
 
     if (ImGui::InputFloat("aoDistance", &aoDistance)) {
-      renderer.set("aoDistance", aoDistance);
+      renderer.ref().set("aoDistance", aoDistance);
       renderer_changed = true;
     }
 
     static bool shadows = true;
     if (ImGui::Checkbox("shadows", &shadows)) {
-      renderer.set("shadowsEnabled", int(shadows));
+      renderer.ref().set("shadowsEnabled", int(shadows));
       renderer_changed = true;
     }
 
     static bool singleSidedLighting = true;
     if (ImGui::Checkbox("single_sided_lighting", &singleSidedLighting)) {
-      renderer.set("oneSidedLighting", int(singleSidedLighting));
+      renderer.ref().set("oneSidedLighting", int(singleSidedLighting));
       renderer_changed = true;
     }
 
     static int exponent = -6;
     if (ImGui::SliderInt("ray_epsilon (exponent)", &exponent, -10, 2)) {
-      renderer.set("epsilon", ospcommon::pow(10.f, (float)exponent));
+      renderer.ref().set("epsilon", ospcommon::pow(10.f, (float)exponent));
       renderer_changed = true;
     }
 
     static int spp = 1;
     if (ImGui::SliderInt("spp", &spp, -4, 16)) {
-      renderer.set("spp", spp);
+      renderer.ref().set("spp", spp);
       renderer_changed = true;
     }
 
     static ImVec4 bg_color = ImColor(255, 255, 255);
     if (ImGui::ColorEdit3("bg_color", (float*)&bg_color)) {
-      renderer.set("bgColor", bg_color.x, bg_color.y, bg_color.z);
+      renderer.ref().set("bgColor", bg_color.x, bg_color.y, bg_color.z);
       renderer_changed = true;
     }
 
     if (renderer_changed) {
-      renderer.commit();
+      renderer.ref().commit();
       resetAccumulation();
     }
   }
