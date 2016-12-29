@@ -29,6 +29,7 @@ ospray_create_library(ospray_imgui3d
 LINK
   ospray
   ospray_common
+  ospray_imgui_util
   glfw
   gl3w
   imgui
