@@ -68,9 +68,9 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
     worldBounds(worldBounds),
     lockFirstAnimationFrame(false)
 {
-  if (!worldBounds.empty()) {
+  if (!worldBounds.empty())
     setWorldBounds(worldBounds[0]);
-  }
+
   renderer.set("model",  sceneModels[0]);
   renderer.set("camera", camera);
   renderer.commit();

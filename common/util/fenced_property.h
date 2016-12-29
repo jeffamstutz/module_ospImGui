@@ -42,7 +42,7 @@ public:
 
 private:
 
-  bool newValue;
+  bool newValue {false};
   T queuedValue;
   T currentValue;
 
