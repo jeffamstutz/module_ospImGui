@@ -54,24 +54,6 @@ namespace ospray {
 
     // Class definitions //////////////////////////////////////////////////////
 
-    FPSCounter::FPSCounter()
-    {
-      smooth_nom = 0.;
-      smooth_den = 0.;
-      frameStartTime = 0.;
-    }
-    
-    void FPSCounter::startRender() 
-    { 
-      frameStartTime = ospcommon::getSysTime(); 
-    }
-    
-    void FPSCounter::doneRender() {
-      double seconds = ospcommon::getSysTime() - frameStartTime; 
-      smooth_nom = smooth_nom * 0.8f + seconds;
-      smooth_den = smooth_den * 0.8f + 1.f;
-    }
-
     /*! write given frame buffer to file, in PPM P6 format. */
     void saveFrameBufferToFile(const char *fileName,
                                const uint32_t *pixel,

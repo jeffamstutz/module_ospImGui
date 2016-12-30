@@ -31,6 +31,7 @@
 
 // ospImGui util
 #include "fenced_property.h"
+#include "FPSCounter.h"
 
 namespace ospray {
 
@@ -66,6 +67,7 @@ public:
   bool      hasNewFrame();
   uint32_t* mapFramebuffer();
   void      unmapFrame();
+  double    lastFrameFps();
 
 private:
 
@@ -98,6 +100,8 @@ private:
   std::atomic<bool> viewChanged     {false};
   std::atomic<bool> rendererChanged {false};
   std::atomic<bool> newPixels       {false};
+
+  FPSCounter fps;
 };
 
 }// namespace ospray

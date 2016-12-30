@@ -80,7 +80,6 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
 
   renderEngine.start();
 
-  resetAccum = false;
   frameTimer = ospcommon::getSysTime();
   animationTimer = 0.;
   animationFrameDelta = .03;
@@ -99,11 +98,6 @@ void ImGuiViewer::setRenderer(OSPRenderer renderer)
 {
   this->renderer = renderer;
   renderEngine.setRenderer(renderer);
-}
-
-void ImGuiViewer::resetAccumulation()
-{
-  resetAccum = true;
 }
 
 void ImGuiViewer::toggleFullscreen()
@@ -137,8 +131,7 @@ void ImGuiViewer::printViewport()
 
 void ImGuiViewer::saveScreenshot(const std::string &basename)
 {
-  const uint32_t *p = renderEngine.mapFramebuffer();
-  writePPM(basename + ".ppm", windowSize.x, windowSize.y, p);
+  writePPM(basename + ".ppm", windowSize.x, windowSize.y, pixelBuffer.data());
   cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
        << endl;
 }
@@ -160,6 +153,8 @@ void ImGuiViewer::reshape(const vec2i &newSize)
 
   renderEngine.setFbSize(newSize);
   renderEngine.markViewChanged();
+
+  pixelBuffer.resize(newSize.x * newSize.y);
 }
 
 void ImGuiViewer::keypress(char key)
@@ -175,7 +170,7 @@ void ImGuiViewer::keypress(char key)
     animationFrameDelta = min(animationFrameDelta+0.01, 1.0); 
     break;
   case 'R':
-    renderingPaused = !renderingPaused;
+    toggleRenderEngine();
     break;
   case '!':
     saveScreenshot("ospimguiviewer");
@@ -247,20 +242,31 @@ void ImGuiViewer::display()
     renderEngine.markViewChanged();
   }
 
-  fps.startRender();
+  if (renderEngine.hasNewFrame()) {
+    auto *srcPixels = renderEngine.mapFramebuffer();
+    auto *dstPixels = pixelBuffer.data();
+    auto nPixels = windowSize.x * windowSize.y;
+    memcpy(dstPixels, srcPixels, nPixels * sizeof(uint32_t));
+    lastFrameFPS = renderEngine.lastFrameFps();
+    renderEngine.unmapFrame();
+  }
 
-  // set the glut3d widget's frame buffer to the opsray frame buffer,
-  // then display
-  ucharFB = renderEngine.mapFramebuffer();
+  ucharFB = pixelBuffer.data();
   frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
   ImGui3DWidget::display();
 
-  renderEngine.unmapFrame();
-
-  fps.doneRender();
-
   // that pointer is no longer valid, so set it to null
   ucharFB = nullptr;
+}
+
+void ImGuiViewer::toggleRenderEngine()
+{
+  renderingPaused = !renderingPaused;
+
+  if (renderingPaused)
+    renderEngine.stop();
+  else
+    renderEngine.start();
 }
 
 void ImGuiViewer::updateAnimation(double deltaSeconds)
@@ -306,8 +312,8 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
     {
       renderer.set("model",  sceneModels[dataFrameId]);
     }
+
     renderEngine.markRendererChanged();
-    resetAccumulation();
   }
 }
 
@@ -323,12 +329,15 @@ void ImGuiViewer::buildGui()
   {
     if (ImGui::BeginMenu("App"))
     {
-#if 1
+#if 0
       ImGui::Checkbox("Show ImGui Demo Window", &demo_window);
 #endif
 
       ImGui::Checkbox("Auto-Rotate", &animating);
-      ImGui::Checkbox("Pause Rendering", &renderingPaused);
+      bool paused = renderingPaused;
+      if (ImGui::Checkbox("Pause Rendering", &paused)) {
+        toggleRenderEngine();
+      }
       if (ImGui::MenuItem("Take Screenshot")) saveScreenshot("ospimguiviewer");
       if (ImGui::MenuItem("Quit")) {
         renderEngine.stop();
@@ -364,8 +373,8 @@ void ImGuiViewer::buildGui()
   if (ImGui::CollapsingHeader("FPS Statistics", "FPS Statistics", true, true))
   {
     ImGui::NewLine();
-    ImGui::Text("OSPRay render rate: %.1f FPS", fps.getFPS());
-    ImGui::Text("      display rate: %.1f FPS", 1.f/ImGui::GetIO().DeltaTime);
+    ImGui::Text("OSPRay render rate: %.1f FPS", lastFrameFPS);
+    ImGui::Text("  GUI display rate: %.1f FPS", 1.f/ImGui::GetIO().DeltaTime);
     ImGui::NewLine();
   }
 

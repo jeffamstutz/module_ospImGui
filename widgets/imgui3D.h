@@ -37,19 +37,6 @@ namespace ospray {
 
     using ospcommon::AffineSpace3fa;
 
-    /*! helper class that allows for easily computing (smoothed) frame rate */
-    struct OSPRAY_IMGUI3D_INTERFACE FPSCounter {
-      FPSCounter();
-      void startRender();
-      void doneRender();
-      double getFPS() const { return smooth_den / smooth_nom; }
-
-    private:
-      double smooth_nom;
-      double smooth_den;
-      double frameStartTime;
-    };
-
     struct ImGui3DWidget;
     
     struct OSPRAY_IMGUI3D_INTERFACE Manipulator {

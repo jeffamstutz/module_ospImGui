@@ -28,6 +28,7 @@
 
 #include "../common/util/fenced_property.h"
 #include "../common/util/async_render_engine.h"
+#include "../common/util/FPSCounter.h"
 
 #include "imgui3D.h"
 #include "Imgui3dExport.h"
@@ -51,7 +52,6 @@ namespace ospray {
     ~ImGuiViewer();
 
     void setRenderer(OSPRenderer renderer);
-    void resetAccumulation();
     void toggleFullscreen();
     void resetView();
     void printViewport();
@@ -72,6 +72,8 @@ namespace ospray {
 
     void display() override;
 
+    void toggleRenderEngine();
+
     // Data //
 
     std::deque<cpp::Model>       sceneModels;
@@ -79,13 +81,12 @@ namespace ospray {
     cpp::Camera   camera;
     cpp::Renderer renderer;
 
-    ospray::imgui3D::FPSCounter fps;
+    double lastFrameFPS;
 
     ospcommon::vec2i windowSize;
     bool fullScreen;
     imgui3D::ImGui3DWidget::ViewPort glutViewPort;
 
-    std::atomic<bool> resetAccum;
     double frameTimer;
     double animationTimer;
     double animationFrameDelta;
@@ -97,8 +98,8 @@ namespace ospray {
 
     float aoDistance {1e20f};
 
-    // NEW //
     async_render_engine renderEngine;
+    std::vector<uint32_t> pixelBuffer;
   };
 
 }// namespace ospray

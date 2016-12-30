@@ -50,6 +50,9 @@ void async_render_engine::markRendererChanged()
 
 void async_render_engine::start()
 {
+  if (state == ExecState::RUNNING)
+    return;
+
   validate();
 
   if (state == ExecState::INVALID)
@@ -89,6 +92,11 @@ uint32_t *async_render_engine::mapFramebuffer()
 void async_render_engine::unmapFrame()
 {
   fbMutex.unlock();
+}
+
+double async_render_engine::lastFrameFps()
+{
+  return fps.getFPS();
 }
 
 void async_render_engine::validate()
@@ -143,7 +151,9 @@ void async_render_engine::run()
     if (resetAccum)
       frameBuffer.clear(OSP_FB_ACCUM);
 
+    fps.startRender();
     renderer.ref().renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
+    fps.doneRender();
 
     auto *srcPB = (uint32_t*)frameBuffer.map(OSP_FB_COLOR);
     auto *dstPB = (uint32_t*)pixelBuffer[currentPB].data();
