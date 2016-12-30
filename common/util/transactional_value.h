@@ -48,7 +48,7 @@ private:
   std::mutex mutex;
 };
 
-// Inlined fenced_property Members ////////////////////////////////////////////
+// Inlined transactional_value Members ////////////////////////////////////////
 
 template <typename T>
 template <typename OtherType>
