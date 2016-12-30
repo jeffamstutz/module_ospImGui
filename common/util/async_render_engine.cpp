@@ -82,7 +82,7 @@ bool async_render_engine::hasNewFrame()
 uint32_t *async_render_engine::mapResults()
 {
   fbMutex.lock();
-  newPixels = true;
+  newPixels = false;
   return pixelBuffer[mappedPB].data();
 }
 
@@ -95,29 +95,10 @@ void async_render_engine::validate()
 {
   if (state == ExecState::INVALID)
   {
+    renderer.update();
     state = (camera.handle() && renderer.ref().handle()) ? ExecState::STOPPED :
                                                            ExecState::INVALID;
   }
-}
-
-bool async_render_engine::updateProperties()
-{
-  bool updated = false;
-
-  updated |= renderer.update();
-  updated |= whichModelToRender.update();
-
-  return updated;
-}
-
-bool async_render_engine::commitAnyChanges()
-{
-  bool changes = viewChanged | rendererChanged;
-
-  if (viewChanged)     camera.commit();
-  if (rendererChanged) renderer.ref().commit();
-
-  return changes;
 }
 
 bool async_render_engine::checkForFbResize()
@@ -137,13 +118,27 @@ bool async_render_engine::checkForFbResize()
   return changed;
 }
 
+bool async_render_engine::updateProperties()
+{
+  bool changes = renderer.update();
+
+  changes |= viewChanged | rendererChanged;
+
+  if (viewChanged)     camera.commit();
+  if (rendererChanged) renderer.ref().commit();
+
+  viewChanged     = false;
+  rendererChanged = false;
+
+  return changes;
+}
+
 void async_render_engine::run()
 {
   while (state == ExecState::RUNNING) {
     bool resetAccum = false;
     resetAccum |= checkForFbResize();
     resetAccum |= updateProperties();
-    resetAccum |= commitAnyChanges();
 
     if (resetAccum)
       frameBuffer.clear(OSP_FB_ACCUM);

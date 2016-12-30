@@ -27,6 +27,7 @@
 #include <ospray_cpp/Renderer.h>
 
 #include "../common/util/fenced_property.h"
+#include "../common/util/async_render_engine.h"
 
 #include "imgui3D.h"
 #include "Imgui3dExport.h"
@@ -47,6 +48,7 @@ namespace ospray {
                 std::deque<cpp::Model> model,
                 cpp::Renderer renderer,
                 cpp::Camera camera);
+    ~ImGuiViewer();
 
     void setRenderer(OSPRenderer renderer);
     void resetAccumulation();
@@ -98,6 +100,9 @@ namespace ospray {
     ospcommon::vec3f scale;
 
     float aoDistance {1e20f};
+
+    // NEW //
+    async_render_engine renderEngine;
   };
 
 }// namespace ospray

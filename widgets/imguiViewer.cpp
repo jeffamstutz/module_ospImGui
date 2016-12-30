@@ -75,6 +75,12 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
   renderer.set("camera", camera);
   renderer.commit();
 
+  renderEngine.setRenderer(renderer);
+  renderEngine.setCamera(camera);
+  renderEngine.setFbSize({1024, 768});
+
+  renderEngine.start();
+
   resetAccum = false;
   frameTimer = ospcommon::getSysTime();
   animationTimer = 0.;
@@ -83,6 +89,11 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
   animationPaused = false;
   glutViewPort = viewPort;
   scale = vec3f(1,1,1);
+}
+
+ImGuiViewer::~ImGuiViewer()
+{
+  renderEngine.stop();
 }
 
 void ImGuiViewer::setRenderer(OSPRenderer renderer)
@@ -136,7 +147,7 @@ void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
   ImGui3DWidget::setWorldBounds(worldBounds);
   aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
   renderer.ref().set("aoDistance", aoDistance);
-  renderer.ref().commit();
+  renderEngine.markRendererChanged();
 }
 
 void ImGuiViewer::reshape(const vec2i &newSize)
@@ -147,11 +158,13 @@ void ImGuiViewer::reshape(const vec2i &newSize)
                                  OSP_FB_SRGBA,
                                  OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
 
-  frameBuffer.clear(OSP_FB_ACCUM);
+  //frameBuffer.clear(OSP_FB_ACCUM);
 
   camera.set("aspect", viewPort.aspect);
-  camera.commit();
   viewPort.modified = true;
+
+  renderEngine.setFbSize(newSize);
+  renderEngine.markViewChanged();
 }
 
 void ImGuiViewer::keypress(char key)
@@ -208,6 +221,12 @@ void ImGuiViewer::keypress(char key)
   case 'p':
     printViewport();
     break;
+  case 27 /*ESC*/:
+  case 'q':
+  case 'Q':
+    renderEngine.stop();
+    std::exit(0);
+    break;
   default:
     ImGui3DWidget::keypress(key);
   }
@@ -231,29 +250,22 @@ void ImGuiViewer::display()
     camera.set("up", viewPort.up);
     camera.set("aspect", viewPort.aspect);
     camera.set("fovy", viewPort.openingAngle);
-    camera.commit();
 
     viewPort.modified = false;
-    resetAccum = true;
-  }
-
-  if (resetAccum) {
-    frameBuffer.clear(OSP_FB_ACCUM);
-    resetAccum = false;
+    renderEngine.markViewChanged();
   }
 
   fps.startRender();
-  if (!renderingPaused)
-    renderer.ref().renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
-  fps.doneRender();
 
   // set the glut3d widget's frame buffer to the opsray frame buffer,
   // then display
-  ucharFB = (uint32_t *)frameBuffer.map(OSP_FB_COLOR);
+  ucharFB = renderEngine.mapResults();
   frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
   ImGui3DWidget::display();
 
-  frameBuffer.unmap(ucharFB);
+  renderEngine.unmapFrame();
+
+  fps.doneRender();
 
   // that pointer is no longer valid, so set it to null
   ucharFB = nullptr;
@@ -307,7 +319,7 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
     {
       renderer.ref().set("model",  sceneModels[dataFrameId]);
     }
-    renderer.ref().commit();
+    renderEngine.markRendererChanged();
     resetAccumulation();
   }
 }
@@ -331,7 +343,10 @@ void ImGuiViewer::buildGui()
       ImGui::Checkbox("Auto-Rotate", &animating);
       ImGui::Checkbox("Pause Rendering", &renderingPaused);
       if (ImGui::MenuItem("Take Screenshot")) saveScreenshot("ospimguiviewer");
-      if (ImGui::MenuItem("Quit")) std::exit(0);
+      if (ImGui::MenuItem("Quit")) {
+        renderEngine.stop();
+        std::exit(0);
+      }
       ImGui::EndMenu();
     }
 
@@ -412,10 +427,8 @@ void ImGuiViewer::buildGui()
       renderer_changed = true;
     }
 
-    if (renderer_changed) {
-      renderer.ref().commit();
-      resetAccumulation();
-    }
+    if (renderer_changed)
+      renderEngine.markRendererChanged();
   }
 
   ImGui::End();

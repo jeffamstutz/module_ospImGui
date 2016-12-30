@@ -63,18 +63,17 @@ public:
 
   // Output queries //
 
-  bool  hasNewFrame();
-  uint* mapResults();
-  void  unmapFrame();
+  bool      hasNewFrame();
+  uint32_t* mapResults();
+  void      unmapFrame();
 
 private:
 
   // Helper functions //
 
   void validate();
-  bool updateProperties();
-  bool commitAnyChanges();
   bool checkForFbResize();
+  bool updateProperties();
   void run();
 
   // Data //
