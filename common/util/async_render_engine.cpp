@@ -28,11 +28,6 @@ void async_render_engine::setRenderer(cpp::Renderer renderer)
   this->renderer = renderer;
 }
 
-void async_render_engine::setCamera(cpp::Camera camera)
-{
-  this->camera = camera;
-}
-
 void async_render_engine::setFbSize(const ospcommon::vec2i &size)
 {
   fbSize = size;
@@ -100,8 +95,7 @@ void async_render_engine::validate()
   if (state == ExecState::INVALID)
   {
     renderer.update();
-    state = (camera.handle() && renderer.ref().handle()) ? ExecState::STOPPED :
-                                                           ExecState::INVALID;
+    state = renderer.ref().handle() ? ExecState::STOPPED : ExecState::INVALID;
   }
 }
 

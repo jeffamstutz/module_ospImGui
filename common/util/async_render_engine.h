@@ -47,7 +47,6 @@ public:
   // Properties //
 
   void setRenderer(cpp::Renderer renderer);
-  void setCamera(cpp::Camera camera);
   void setFbSize(const ospcommon::vec2i &size);
 
   // Method to say that an objects needs to be comitted before next frame //
@@ -84,10 +83,8 @@ private:
   std::atomic<ExecState> state {ExecState::INVALID};
 
   cpp::FrameBuffer frameBuffer;
-  cpp::Camera      camera;
 
   transactional_value<cpp::Renderer>    renderer;
-  transactional_value<int>              whichModelToRender {0};
   transactional_value<ospcommon::vec2i> fbSize;
 
   int nPixels {0};

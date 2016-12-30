@@ -72,12 +72,11 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
 
   renderer.set("model",  sceneModels[0]);
   renderer.set("camera", camera);
-  renderer.commit();
 
   renderEngine.setRenderer(renderer);
-  renderEngine.setCamera(camera);
   renderEngine.setFbSize({1024, 768});
 
+  renderEngine.scheduleObjectCommit(renderer);
   renderEngine.start();
 
   frameTimer = ospcommon::getSysTime();
