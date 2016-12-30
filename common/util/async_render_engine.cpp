@@ -85,7 +85,7 @@ const std::vector<uint32_t> &async_render_engine::mapFramebuffer()
   return pixelBuffer[mappedPB];
 }
 
-void async_render_engine::unmapFrame()
+void async_render_engine::unmapFramebuffer()
 {
   fbMutex.unlock();
 }

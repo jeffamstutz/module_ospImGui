@@ -251,7 +251,7 @@ void ImGuiViewer::display()
       lastFrameFPS = renderEngine.lastFrameFps();
     }
 
-    renderEngine.unmapFrame();
+    renderEngine.unmapFramebuffer();
   }
 
   if (displayFrame) {

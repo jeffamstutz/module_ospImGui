@@ -66,7 +66,7 @@ public:
   double lastFrameFps() const;
 
   const std::vector<uint32_t> &mapFramebuffer();
-  void                         unmapFrame();
+  void                         unmapFramebuffer();
 
 private:
 
