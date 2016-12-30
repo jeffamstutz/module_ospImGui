@@ -84,7 +84,6 @@ namespace ospray {
     double lastFrameFPS;
 
     ospcommon::vec2i windowSize;
-    bool fullScreen;
     imgui3D::ImGui3DWidget::ViewPort glutViewPort;
 
     double frameTimer;

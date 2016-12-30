@@ -63,7 +63,6 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
     sceneModels(model),
     renderer(renderer),
     camera(camera),
-    fullScreen(false),
     worldBounds(worldBounds),
     lockFirstAnimationFrame(false)
 {
@@ -97,19 +96,6 @@ void ImGuiViewer::setRenderer(OSPRenderer renderer)
 {
   this->renderer = renderer;
   renderEngine.setRenderer(renderer);
-}
-
-void ImGuiViewer::toggleFullscreen()
-{
-  fullScreen = !fullScreen;
-
-#if 0
-  if(fullScreen) {
-    glutFullScreen();
-  } else {
-    glutPositionWindow(0,10);
-  }
-#endif
 }
 
 void ImGuiViewer::resetView()
@@ -198,9 +184,6 @@ void ImGuiViewer::keypress(char key)
   case 'c':
     viewPort.modified = true;//Reset accumulation
     break;
-  case 'f':
-    toggleFullscreen();
-    break;
   case 'r':
     resetView();
     break;
@@ -220,8 +203,6 @@ void ImGuiViewer::keypress(char key)
 
 void ImGuiViewer::display()
 {
-  if (!renderer.handle() ) return;
-
   updateAnimation(ospcommon::getSysTime()-frameTimer);
   frameTimer = ospcommon::getSysTime();
 
@@ -264,10 +245,7 @@ void ImGuiViewer::toggleRenderEngine()
 {
   renderingPaused = !renderingPaused;
 
-  if (renderingPaused)
-    renderEngine.stop();
-  else
-    renderEngine.start();
+  renderingPaused ? renderEngine.stop() : renderEngine.start();
 }
 
 void ImGuiViewer::updateAnimation(double deltaSeconds)
