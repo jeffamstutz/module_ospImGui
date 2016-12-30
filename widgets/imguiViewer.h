@@ -96,7 +96,6 @@ namespace ospray {
     bool lockFirstAnimationFrame;  //use for static scene
     ospcommon::vec3f translate;
     ospcommon::vec3f scale;
-    int frameID={0};
 
     float aoDistance {1e20f};
   };

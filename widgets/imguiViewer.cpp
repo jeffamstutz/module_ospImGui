@@ -223,13 +223,6 @@ void ImGuiViewer::display()
   updateAnimation(ospcommon::getSysTime()-frameTimer);
   frameTimer = ospcommon::getSysTime();
 
-  if (resetAccum) {
-    frameBuffer.clear(OSP_FB_ACCUM);
-    resetAccum = false;
-  }
-
-  ++frameID;
-
   if (viewPort.modified) {
     Assert2(camera.handle(),"ospray camera is null");
     camera.set("pos", viewPort.from);
@@ -241,7 +234,12 @@ void ImGuiViewer::display()
     camera.commit();
 
     viewPort.modified = false;
+    resetAccum = true;
+  }
+
+  if (resetAccum) {
     frameBuffer.clear(OSP_FB_ACCUM);
+    resetAccum = false;
   }
 
   fps.startRender();

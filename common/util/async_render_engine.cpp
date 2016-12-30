@@ -23,46 +23,45 @@ async_render_engine::~async_render_engine()
   stop();
 }
 
-void async_render_engine::setModels(const async_render_engine::ModelList &models,
-                                    const async_render_engine::BoundsList &bounds)
-{
-  // TODO: implement
-}
-
 void async_render_engine::setRenderer(cpp::Renderer renderer)
 {
-  // TODO: implement
+  this->renderer = renderer;
 }
 
 void async_render_engine::setCamera(cpp::Camera camera)
 {
-  // TODO: implement
+  this->camera = camera;
 }
 
 void async_render_engine::setFbSize(const ospcommon::vec2i &size)
 {
-  // TODO: implement
+  fbSize = size;
 }
 
 void async_render_engine::markViewChanged()
 {
-  // TODO: implement
+  viewChanged = true;
 }
 
 void async_render_engine::markRendererChanged()
 {
-  // TODO: implement
+  rendererChanged = true;
 }
 
 void async_render_engine::start()
 {
+  validate();
+
+  if (state == ExecState::INVALID)
+    throw std::runtime_error("Can't start the engine in an invalid state!");
+
   state = ExecState::RUNNING;
   backgroundThread = std::thread(&async_render_engine::run, this);
 }
 
 void async_render_engine::stop()
 {
-  if (state == ExecState::INVALID)
+  if (state != ExecState::RUNNING)
     return;
 
   state = ExecState::STOPPED;
@@ -77,25 +76,93 @@ ExecState async_render_engine::runningState()
 
 bool async_render_engine::hasNewFrame()
 {
-  // TODO: implement
-  return false;
+  return newPixels;
 }
 
-void *async_render_engine::mapResults()
+uint32_t *async_render_engine::mapResults()
 {
-  // TODO: implement
-  return nullptr;
+  fbMutex.lock();
+  newPixels = true;
+  return pixelBuffer[mappedPB].data();
 }
 
 void async_render_engine::unmapFrame()
 {
-  // TODO: implement
+  fbMutex.unlock();
+}
+
+void async_render_engine::validate()
+{
+  if (state == ExecState::INVALID)
+  {
+    state = (camera.handle() && renderer.ref().handle()) ? ExecState::STOPPED :
+                                                           ExecState::INVALID;
+  }
+}
+
+bool async_render_engine::updateProperties()
+{
+  bool updated = false;
+
+  updated |= renderer.update();
+  updated |= whichModelToRender.update();
+
+  return updated;
+}
+
+bool async_render_engine::commitAnyChanges()
+{
+  bool changes = viewChanged | rendererChanged;
+
+  if (viewChanged)     camera.commit();
+  if (rendererChanged) renderer.ref().commit();
+
+  return changes;
+}
+
+bool async_render_engine::checkForFbResize()
+{
+  bool changed = fbSize.update();
+
+  if (changed) {
+    auto &size  = fbSize.ref();
+    frameBuffer = cpp::FrameBuffer(osp::vec2i{size.x, size.y}, OSP_FB_SRGBA,
+                                   OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+
+    nPixels = size.x * size.y;
+    pixelBuffer[0].resize(nPixels);
+    pixelBuffer[1].resize(nPixels);
+  }
+
+  return changed;
 }
 
 void async_render_engine::run()
 {
   while (state == ExecState::RUNNING) {
-    // TODO: implement
+    bool resetAccum = false;
+    resetAccum |= checkForFbResize();
+    resetAccum |= updateProperties();
+    resetAccum |= commitAnyChanges();
+
+    if (resetAccum)
+      frameBuffer.clear(OSP_FB_ACCUM);
+
+    renderer.ref().renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
+
+    auto *srcPB = (uint32_t*)frameBuffer.map(OSP_FB_COLOR);
+    auto *dstPB = (uint32_t*)pixelBuffer[currentPB].data();
+
+    memcpy(dstPB, srcPB, nPixels*sizeof(uint32_t));
+
+    frameBuffer.unmap(srcPB);
+
+    if (fbMutex.try_lock())
+    {
+      std::swap(currentPB, mappedPB);
+      newPixels = true;
+      fbMutex.unlock();
+    }
   }
 }
 

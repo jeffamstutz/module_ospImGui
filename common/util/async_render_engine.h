@@ -40,18 +40,16 @@ class async_render_engine
 {
 public:
 
-  using ModelList  = std::deque<cpp::Model>;
-  using BoundsList = std::deque<ospcommon::box3f>;
-
   async_render_engine() = default;
   ~async_render_engine();
 
   // Properties //
 
-  void setModels(const ModelList &models, const BoundsList &bounds);
   void setRenderer(cpp::Renderer renderer);
   void setCamera(cpp::Camera camera);
   void setFbSize(const ospcommon::vec2i &size);
+
+  // Methods to say when an objects needs to be comitted before next frame //
 
   void markViewChanged();
   void markRendererChanged();
@@ -66,13 +64,17 @@ public:
   // Output queries //
 
   bool  hasNewFrame();
-  void* mapResults();
+  uint* mapResults();
   void  unmapFrame();
 
 private:
 
   // Helper functions //
 
+  void validate();
+  bool updateProperties();
+  bool commitAnyChanges();
+  bool checkForFbResize();
   void run();
 
   // Data //
@@ -81,14 +83,22 @@ private:
   std::atomic<ExecState> state {ExecState::INVALID};
 
   cpp::FrameBuffer frameBuffer;
-  ModelList        sceneModels;
-  BoundsList       worldBounds;
+  cpp::Camera      camera;
 
-  fenced_property<cpp::Renderer> renderer;
-  fenced_property<int>           whichModelToRender {0};
+  fenced_property<cpp::Renderer>    renderer;
+  fenced_property<int>              whichModelToRender {0};
+  fenced_property<ospcommon::vec2i> fbSize;
 
-  std::atomic<bool> viewChanged {false};
+  int nPixels {0};
+
+  int currentPB {0};
+  int mappedPB  {1};
+  std::mutex fbMutex;
+  std::vector<uint32_t> pixelBuffer[2];
+
+  std::atomic<bool> viewChanged     {false};
   std::atomic<bool> rendererChanged {false};
+  std::atomic<bool> newPixels       {false};
 };
 
 }// namespace ospray
