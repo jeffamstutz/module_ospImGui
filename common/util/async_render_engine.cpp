@@ -38,14 +38,10 @@ void async_render_engine::setFbSize(const ospcommon::vec2i &size)
   fbSize = size;
 }
 
-void async_render_engine::markViewChanged()
+void async_render_engine::scheduleObjectCommit(const cpp::ManagedObject &obj)
 {
-  viewChanged = true;
-}
-
-void async_render_engine::markRendererChanged()
-{
-  rendererChanged = true;
+  std::lock_guard<std::mutex> lock{objMutex};
+  objsToCommit.push_back(obj.object());
 }
 
 void async_render_engine::start()
@@ -109,6 +105,23 @@ void async_render_engine::validate()
   }
 }
 
+bool async_render_engine::checkForObjCommits()
+{
+  bool commitOccurred = false;
+
+  if (!objsToCommit.empty()) {
+    std::lock_guard<std::mutex> lock{objMutex};
+
+    for (auto obj : objsToCommit)
+      ospCommit(obj);
+
+    objsToCommit.clear();
+    commitOccurred = true;
+  }
+
+  return commitOccurred;
+}
+
 bool async_render_engine::checkForFbResize()
 {
   bool changed = fbSize.update();
@@ -126,27 +139,13 @@ bool async_render_engine::checkForFbResize()
   return changed;
 }
 
-bool async_render_engine::updateProperties()
-{
-  bool changes = renderer.update();
-
-  changes |= viewChanged | rendererChanged;
-
-  if (viewChanged)     camera.commit();
-  if (rendererChanged) renderer.ref().commit();
-
-  viewChanged     = false;
-  rendererChanged = false;
-
-  return changes;
-}
-
 void async_render_engine::run()
 {
   while (state == ExecState::RUNNING) {
     bool resetAccum = false;
+    resetAccum |= renderer.update();
     resetAccum |= checkForFbResize();
-    resetAccum |= updateProperties();
+    resetAccum |= checkForObjCommits();
 
     if (resetAccum)
       frameBuffer.clear(OSP_FB_ACCUM);

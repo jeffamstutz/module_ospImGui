@@ -50,10 +50,9 @@ public:
   void setCamera(cpp::Camera camera);
   void setFbSize(const ospcommon::vec2i &size);
 
-  // Methods to say when an objects needs to be comitted before next frame //
+  // Method to say that an objects needs to be comitted before next frame //
 
-  void markViewChanged();
-  void markRendererChanged();
+  void scheduleObjectCommit(const cpp::ManagedObject &obj);
 
   // Engine conrols //
 
@@ -75,6 +74,7 @@ private:
   // Helper functions //
 
   void validate();
+  bool checkForObjCommits();
   bool checkForFbResize();
   bool updateProperties();
   void run();
@@ -98,9 +98,10 @@ private:
   std::mutex fbMutex;
   std::vector<uint32_t> pixelBuffer[2];
 
-  std::atomic<bool> viewChanged     {false};
-  std::atomic<bool> rendererChanged {false};
-  std::atomic<bool> newPixels       {false};
+  std::mutex objMutex;
+  std::vector<OSPObject> objsToCommit;
+
+  std::atomic<bool> newPixels {false};
 
   FPSCounter fps;
 };

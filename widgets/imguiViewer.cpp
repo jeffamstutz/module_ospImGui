@@ -140,7 +140,7 @@ void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
   ImGui3DWidget::setWorldBounds(worldBounds);
   aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
   renderer.set("aoDistance", aoDistance);
-  renderEngine.markRendererChanged();
+  renderEngine.scheduleObjectCommit(renderer);
 }
 
 void ImGuiViewer::reshape(const vec2i &newSize)
@@ -148,12 +148,9 @@ void ImGuiViewer::reshape(const vec2i &newSize)
   ImGui3DWidget::reshape(newSize);
   windowSize = newSize;
 
-  camera.set("aspect", viewPort.aspect);
   viewPort.modified = true;
 
   renderEngine.setFbSize(newSize);
-  renderEngine.markViewChanged();
-
   pixelBuffer.resize(newSize.x * newSize.y);
 }
 
@@ -239,7 +236,7 @@ void ImGuiViewer::display()
     camera.set("fovy", viewPort.openingAngle);
 
     viewPort.modified = false;
-    renderEngine.markViewChanged();
+    renderEngine.scheduleObjectCommit(camera);
   }
 
   bool displayFrame = true;
@@ -322,7 +319,7 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
       renderer.set("model",  sceneModels[dataFrameId]);
     }
 
-    renderEngine.markRendererChanged();
+    renderEngine.scheduleObjectCommit(renderer);
   }
 }
 
@@ -433,7 +430,7 @@ void ImGuiViewer::buildGui()
     }
 
     if (renderer_changed)
-      renderEngine.markRendererChanged();
+      renderEngine.scheduleObjectCommit(renderer);
   }
 
   ImGui::End();
