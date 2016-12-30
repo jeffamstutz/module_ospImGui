@@ -18,150 +18,150 @@
 
 namespace ospray {
 
-async_render_engine::~async_render_engine()
-{
-  stop();
-}
-
-void async_render_engine::setRenderer(cpp::Renderer renderer)
-{
-  this->renderer = renderer;
-}
-
-void async_render_engine::setFbSize(const ospcommon::vec2i &size)
-{
-  fbSize = size;
-}
-
-void async_render_engine::scheduleObjectCommit(const cpp::ManagedObject &obj)
-{
-  std::lock_guard<std::mutex> lock{objMutex};
-  objsToCommit.push_back(obj.object());
-}
-
-void async_render_engine::start()
-{
-  if (state == ExecState::RUNNING)
-    return;
-
-  validate();
-
-  if (state == ExecState::INVALID)
-    throw std::runtime_error("Can't start the engine in an invalid state!");
-
-  state = ExecState::RUNNING;
-  backgroundThread = std::thread(&async_render_engine::run, this);
-}
-
-void async_render_engine::stop()
-{
-  if (state != ExecState::RUNNING)
-    return;
-
-  state = ExecState::STOPPED;
-  if (backgroundThread.joinable())
-    backgroundThread.join();
-}
-
-ExecState async_render_engine::runningState() const
-{
-  return state;
-}
-
-bool async_render_engine::hasNewFrame() const
-{
-  return newPixels;
-}
-
-double async_render_engine::lastFrameFps() const
-{
-  return fps.getFPS();
-}
-
-const std::vector<uint32_t> &async_render_engine::mapFramebuffer()
-{
-  fbMutex.lock();
-  newPixels = false;
-  return pixelBuffer[mappedPB];
-}
-
-void async_render_engine::unmapFramebuffer()
-{
-  fbMutex.unlock();
-}
-
-void async_render_engine::validate()
-{
-  if (state == ExecState::INVALID)
+  async_render_engine::~async_render_engine()
   {
-    renderer.update();
-    state = renderer.ref().handle() ? ExecState::STOPPED : ExecState::INVALID;
+    stop();
   }
-}
 
-bool async_render_engine::checkForObjCommits()
-{
-  bool commitOccurred = false;
+  void async_render_engine::setRenderer(cpp::Renderer renderer)
+  {
+    this->renderer = renderer;
+  }
 
-  if (!objsToCommit.empty()) {
+  void async_render_engine::setFbSize(const ospcommon::vec2i &size)
+  {
+    fbSize = size;
+  }
+
+  void async_render_engine::scheduleObjectCommit(const cpp::ManagedObject &obj)
+  {
     std::lock_guard<std::mutex> lock{objMutex};
-
-    for (auto obj : objsToCommit)
-      ospCommit(obj);
-
-    objsToCommit.clear();
-    commitOccurred = true;
+    objsToCommit.push_back(obj.object());
   }
 
-  return commitOccurred;
-}
+  void async_render_engine::start()
+  {
+    if (state == ExecState::RUNNING)
+      return;
 
-bool async_render_engine::checkForFbResize()
-{
-  bool changed = fbSize.update();
+    validate();
 
-  if (changed) {
-    auto &size  = fbSize.ref();
-    frameBuffer = cpp::FrameBuffer(osp::vec2i{size.x, size.y}, OSP_FB_SRGBA,
-                                   OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+    if (state == ExecState::INVALID)
+      throw std::runtime_error("Can't start the engine in an invalid state!");
 
-    nPixels = size.x * size.y;
-    pixelBuffer[0].resize(nPixels);
-    pixelBuffer[1].resize(nPixels);
+    state = ExecState::RUNNING;
+    backgroundThread = std::thread(&async_render_engine::run, this);
   }
 
-  return changed;
-}
+  void async_render_engine::stop()
+  {
+    if (state != ExecState::RUNNING)
+      return;
 
-void async_render_engine::run()
-{
-  while (state == ExecState::RUNNING) {
-    bool resetAccum = false;
-    resetAccum |= renderer.update();
-    resetAccum |= checkForFbResize();
-    resetAccum |= checkForObjCommits();
+    state = ExecState::STOPPED;
+    if (backgroundThread.joinable())
+      backgroundThread.join();
+  }
 
-    if (resetAccum)
-      frameBuffer.clear(OSP_FB_ACCUM);
+  ExecState async_render_engine::runningState() const
+  {
+    return state;
+  }
 
-    fps.startRender();
-    renderer.ref().renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
-    fps.doneRender();
+  bool async_render_engine::hasNewFrame() const
+  {
+    return newPixels;
+  }
 
-    auto *srcPB = (uint32_t*)frameBuffer.map(OSP_FB_COLOR);
-    auto *dstPB = (uint32_t*)pixelBuffer[currentPB].data();
+  double async_render_engine::lastFrameFps() const
+  {
+    return fps.getFPS();
+  }
 
-    memcpy(dstPB, srcPB, nPixels*sizeof(uint32_t));
+  const std::vector<uint32_t> &async_render_engine::mapFramebuffer()
+  {
+    fbMutex.lock();
+    newPixels = false;
+    return pixelBuffer[mappedPB];
+  }
 
-    frameBuffer.unmap(srcPB);
+  void async_render_engine::unmapFramebuffer()
+  {
+    fbMutex.unlock();
+  }
 
-    if (fbMutex.try_lock())
+  void async_render_engine::validate()
+  {
+    if (state == ExecState::INVALID)
     {
-      std::swap(currentPB, mappedPB);
-      newPixels = true;
-      fbMutex.unlock();
+      renderer.update();
+      state = renderer.ref().handle() ? ExecState::STOPPED : ExecState::INVALID;
     }
   }
-}
+
+  bool async_render_engine::checkForObjCommits()
+  {
+    bool commitOccurred = false;
+
+    if (!objsToCommit.empty()) {
+      std::lock_guard<std::mutex> lock{objMutex};
+
+      for (auto obj : objsToCommit)
+        ospCommit(obj);
+
+      objsToCommit.clear();
+      commitOccurred = true;
+    }
+
+    return commitOccurred;
+  }
+
+  bool async_render_engine::checkForFbResize()
+  {
+    bool changed = fbSize.update();
+
+    if (changed) {
+      auto &size  = fbSize.ref();
+      frameBuffer = cpp::FrameBuffer(osp::vec2i{size.x, size.y}, OSP_FB_SRGBA,
+                                     OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+
+      nPixels = size.x * size.y;
+      pixelBuffer[0].resize(nPixels);
+      pixelBuffer[1].resize(nPixels);
+    }
+
+    return changed;
+  }
+
+  void async_render_engine::run()
+  {
+    while (state == ExecState::RUNNING) {
+      bool resetAccum = false;
+      resetAccum |= renderer.update();
+      resetAccum |= checkForFbResize();
+      resetAccum |= checkForObjCommits();
+
+      if (resetAccum)
+        frameBuffer.clear(OSP_FB_ACCUM);
+
+      fps.startRender();
+      renderer.ref().renderFrame(frameBuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
+      fps.doneRender();
+
+      auto *srcPB = (uint32_t*)frameBuffer.map(OSP_FB_COLOR);
+      auto *dstPB = (uint32_t*)pixelBuffer[currentPB].data();
+
+      memcpy(dstPB, srcPB, nPixels*sizeof(uint32_t));
+
+      frameBuffer.unmap(srcPB);
+
+      if (fbMutex.try_lock())
+      {
+        std::swap(currentPB, mappedPB);
+        newPixels = true;
+        fbMutex.unlock();
+      }
+    }
+  }
 
 }// namespace ospray

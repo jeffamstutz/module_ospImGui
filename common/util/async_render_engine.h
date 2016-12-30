@@ -33,71 +33,71 @@
 
 namespace ospray {
 
-enum class ExecState {STOPPED, RUNNING, INVALID};
+  enum class ExecState {STOPPED, RUNNING, INVALID};
 
-class async_render_engine
-{
-public:
+  class async_render_engine
+  {
+  public:
 
-  async_render_engine() = default;
-  ~async_render_engine();
+    async_render_engine() = default;
+    ~async_render_engine();
 
-  // Properties //
+    // Properties //
 
-  void setRenderer(cpp::Renderer renderer);
-  void setFbSize(const ospcommon::vec2i &size);
+    void setRenderer(cpp::Renderer renderer);
+    void setFbSize(const ospcommon::vec2i &size);
 
-  // Method to say that an objects needs to be comitted before next frame //
+    // Method to say that an objects needs to be comitted before next frame //
 
-  void scheduleObjectCommit(const cpp::ManagedObject &obj);
+    void scheduleObjectCommit(const cpp::ManagedObject &obj);
 
-  // Engine conrols //
+    // Engine conrols //
 
-  void start();
-  void stop();
+    void start();
+    void stop();
 
-  ExecState runningState() const;
+    ExecState runningState() const;
 
-  // Output queries //
+    // Output queries //
 
-  bool   hasNewFrame() const;
-  double lastFrameFps() const;
+    bool   hasNewFrame() const;
+    double lastFrameFps() const;
 
-  const std::vector<uint32_t> &mapFramebuffer();
-  void                         unmapFramebuffer();
+    const std::vector<uint32_t> &mapFramebuffer();
+    void                         unmapFramebuffer();
 
-private:
+  private:
 
-  // Helper functions //
+    // Helper functions //
 
-  void validate();
-  bool checkForObjCommits();
-  bool checkForFbResize();
-  void run();
+    void validate();
+    bool checkForObjCommits();
+    bool checkForFbResize();
+    void run();
 
-  // Data //
+    // Data //
 
-  std::thread backgroundThread;
-  std::atomic<ExecState> state {ExecState::INVALID};
+    std::thread backgroundThread;
+    std::atomic<ExecState> state {ExecState::INVALID};
 
-  cpp::FrameBuffer frameBuffer;
+    cpp::FrameBuffer frameBuffer;
 
-  transactional_value<cpp::Renderer>    renderer;
-  transactional_value<ospcommon::vec2i> fbSize;
+    transactional_value<cpp::Renderer>    renderer;
+    transactional_value<ospcommon::vec2i> fbSize;
 
-  int nPixels {0};
+    int nPixels {0};
 
-  int currentPB {0};
-  int mappedPB  {1};
-  std::mutex fbMutex;
-  std::vector<uint32_t> pixelBuffer[2];
+    int currentPB {0};
+    int mappedPB  {1};
+    std::mutex fbMutex;
+    std::vector<uint32_t> pixelBuffer[2];
 
-  std::mutex objMutex;
-  std::vector<OSPObject> objsToCommit;
+    std::mutex objMutex;
+    std::vector<OSPObject> objsToCommit;
 
-  std::atomic<bool> newPixels {false};
+    std::atomic<bool> newPixels {false};
 
-  FPSCounter fps;
-};
+    FPSCounter fps;
+  };
 
 }// namespace ospray
