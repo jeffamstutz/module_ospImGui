@@ -98,36 +98,6 @@ void ImGuiViewer::setRenderer(OSPRenderer renderer)
   renderEngine.setRenderer(renderer);
 }
 
-void ImGuiViewer::resetView()
-{
-  auto oldAspect = viewPort.aspect;
-  viewPort = glutViewPort;
-  viewPort.aspect = oldAspect;
-}
-
-void ImGuiViewer::printViewport()
-{
-  printf("-vp %f %f %f -vu %f %f %f -vi %f %f %f\n",
-         viewPort.from.x, viewPort.from.y, viewPort.from.z,
-         viewPort.up.x,   viewPort.up.y,   viewPort.up.z,
-         viewPort.at.x,   viewPort.at.y,   viewPort.at.z);
-  fflush(stdout);
-}
-
-void ImGuiViewer::saveScreenshot(const std::string &basename)
-{
-  writePPM(basename + ".ppm", windowSize.x, windowSize.y, pixelBuffer.data());
-  cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
-       << endl;
-}
-
-void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
-  ImGui3DWidget::setWorldBounds(worldBounds);
-  aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
-  renderer.set("aoDistance", aoDistance);
-  renderEngine.scheduleObjectCommit(renderer);
-}
-
 void ImGuiViewer::reshape(const vec2i &newSize)
 {
   ImGui3DWidget::reshape(newSize);
@@ -152,7 +122,7 @@ void ImGuiViewer::keypress(char key)
     animationFrameDelta = min(animationFrameDelta+0.01, 1.0); 
     break;
   case 'R':
-    toggleRenderEngine();
+    toggleRenderingPaused();
     break;
   case '!':
     saveScreenshot("ospimguiviewer");
@@ -201,6 +171,42 @@ void ImGuiViewer::keypress(char key)
   }
 }
 
+void ImGuiViewer::resetView()
+{
+  auto oldAspect = viewPort.aspect;
+  viewPort = glutViewPort;
+  viewPort.aspect = oldAspect;
+}
+
+void ImGuiViewer::printViewport()
+{
+  printf("-vp %f %f %f -vu %f %f %f -vi %f %f %f\n",
+         viewPort.from.x, viewPort.from.y, viewPort.from.z,
+         viewPort.up.x,   viewPort.up.y,   viewPort.up.z,
+         viewPort.at.x,   viewPort.at.y,   viewPort.at.z);
+  fflush(stdout);
+}
+
+void ImGuiViewer::saveScreenshot(const std::string &basename)
+{
+  writePPM(basename + ".ppm", windowSize.x, windowSize.y, pixelBuffer.data());
+  cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
+       << endl;
+}
+
+void ImGuiViewer::toggleRenderingPaused()
+{
+  renderingPaused = !renderingPaused;
+  renderingPaused ? renderEngine.stop() : renderEngine.start();
+}
+
+void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
+  ImGui3DWidget::setWorldBounds(worldBounds);
+  aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
+  renderer.set("aoDistance", aoDistance);
+  renderEngine.scheduleObjectCommit(renderer);
+}
+
 void ImGuiViewer::display()
 {
   updateAnimation(ospcommon::getSysTime()-frameTimer);
@@ -239,12 +245,6 @@ void ImGuiViewer::display()
 
   // that pointer is no longer valid, so set it to null
   ucharFB = nullptr;
-}
-
-void ImGuiViewer::toggleRenderEngine()
-{
-  renderingPaused = !renderingPaused;
-  renderingPaused ? renderEngine.stop() : renderEngine.start();
 }
 
 void ImGuiViewer::updateAnimation(double deltaSeconds)
@@ -314,7 +314,7 @@ void ImGuiViewer::buildGui()
       ImGui::Checkbox("Auto-Rotate", &animating);
       bool paused = renderingPaused;
       if (ImGui::Checkbox("Pause Rendering", &paused)) {
-        toggleRenderEngine();
+        toggleRenderingPaused();
       }
       if (ImGui::MenuItem("Take Screenshot")) saveScreenshot("ospimguiviewer");
       if (ImGui::MenuItem("Quit")) {

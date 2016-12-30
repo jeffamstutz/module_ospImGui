@@ -52,27 +52,27 @@ namespace ospray {
     ~ImGuiViewer();
 
     void setRenderer(OSPRenderer renderer);
-    void toggleFullscreen();
-    void resetView();
-    void printViewport();
-    void saveScreenshot(const std::string &basename);
     void setScale(const ospcommon::vec3f& v )  {scale = v;}
     void setTranslation(const ospcommon::vec3f& v)  {translate = v;}
     void setLockFirstAnimationFrame(bool st) {lockFirstAnimationFrame = st;}
-    // We override this so we can update the AO ray length
-    void setWorldBounds(const ospcommon::box3f &worldBounds) override;
 
   protected:
 
     virtual void reshape(const ospcommon::vec2i &newSize) override;
     virtual void keypress(char key) override;
-    virtual void updateAnimation(double deltaSeconds);
 
-    virtual void buildGui() override;
+    void resetView();
+    void printViewport();
+    void saveScreenshot(const std::string &basename);
+    void toggleRenderingPaused();
+    // We override this so we can update the AO ray length
+    void setWorldBounds(const ospcommon::box3f &worldBounds) override;
 
     void display() override;
 
-    void toggleRenderEngine();
+    virtual void updateAnimation(double deltaSeconds);
+
+    virtual void buildGui() override;
 
     // Data //
 
