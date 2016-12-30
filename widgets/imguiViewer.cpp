@@ -383,7 +383,7 @@ void ImGuiViewer::buildGui()
   {
     ImGui::NewLine();
     ImGui::Text("OSPRay render rate: %.1f FPS", lastFrameFPS);
-    ImGui::Text("  GUI display rate: %.1f FPS", 1.f/ImGui::GetIO().DeltaTime);
+    ImGui::Text("  GUI display rate: %.1f FPS", ImGui::GetIO().Framerate);
     ImGui::NewLine();
   }
 
