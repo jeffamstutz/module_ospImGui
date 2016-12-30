@@ -30,8 +30,8 @@
 #include <ospray_cpp/Renderer.h>
 
 // ospImGui util
-#include "fenced_property.h"
 #include "FPSCounter.h"
+#include "transactional_value.h"
 
 namespace ospray {
 
@@ -87,9 +87,9 @@ private:
   cpp::FrameBuffer frameBuffer;
   cpp::Camera      camera;
 
-  fenced_property<cpp::Renderer>    renderer;
-  fenced_property<int>              whichModelToRender {0};
-  fenced_property<ospcommon::vec2i> fbSize;
+  transactional_value<cpp::Renderer>    renderer;
+  transactional_value<int>              whichModelToRender {0};
+  transactional_value<ospcommon::vec2i> fbSize;
 
   int nPixels {0};
 

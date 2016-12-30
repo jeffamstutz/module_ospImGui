@@ -26,9 +26,9 @@
 #include <ospray_cpp/Model.h>
 #include <ospray_cpp/Renderer.h>
 
-#include "../common/util/fenced_property.h"
 #include "../common/util/async_render_engine.h"
 #include "../common/util/FPSCounter.h"
+#include "../common/util/transactional_value.h"
 
 #include "imgui3D.h"
 #include "Imgui3dExport.h"
