@@ -46,7 +46,7 @@ namespace ospray {
   public:
 
     ImGuiViewer(const std::deque<ospcommon::box3f> &worldBounds,
-                std::deque<cpp::Model> model,
+                const std::deque<cpp::Model> &model,
                 cpp::Renderer renderer,
                 cpp::Camera camera);
     ~ImGuiViewer();

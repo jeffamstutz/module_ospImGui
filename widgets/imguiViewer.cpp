@@ -56,7 +56,7 @@ static void writePPM(const string &fileName, const int sizeX, const int sizeY,
 namespace ospray {
 
 ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
-                         std::deque<cpp::Model> model,
+                         const std::deque<cpp::Model> &model,
                          cpp::Renderer renderer,
                          cpp::Camera camera)
   : ImGui3DWidget(ImGui3DWidget::FRAMEBUFFER_NONE),
@@ -244,7 +244,6 @@ void ImGuiViewer::display()
 void ImGuiViewer::toggleRenderEngine()
 {
   renderingPaused = !renderingPaused;
-
   renderingPaused ? renderEngine.stop() : renderEngine.start();
 }
 
