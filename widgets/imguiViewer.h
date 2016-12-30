@@ -72,16 +72,12 @@ namespace ospray {
 
     void display() override;
 
-    void switchRenderers();
-
     // Data //
 
     std::deque<cpp::Model>       sceneModels;
     std::deque<ospcommon::box3f> worldBounds;
-    cpp::FrameBuffer frameBuffer;
-    cpp::Camera      camera;
-
-    fenced_property<cpp::Renderer> renderer;
+    cpp::Camera   camera;
+    cpp::Renderer renderer;
 
     ospray::imgui3D::FPSCounter fps;
 

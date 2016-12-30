@@ -64,7 +64,7 @@ public:
   // Output queries //
 
   bool      hasNewFrame();
-  uint32_t* mapResults();
+  uint32_t* mapFramebuffer();
   void      unmapFrame();
 
 private:

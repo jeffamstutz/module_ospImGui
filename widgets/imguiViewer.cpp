@@ -61,7 +61,6 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
                          cpp::Camera camera)
   : ImGui3DWidget(ImGui3DWidget::FRAMEBUFFER_NONE),
     sceneModels(model),
-    frameBuffer(nullptr),
     renderer(renderer),
     camera(camera),
     fullScreen(false),
@@ -99,6 +98,7 @@ ImGuiViewer::~ImGuiViewer()
 void ImGuiViewer::setRenderer(OSPRenderer renderer)
 {
   this->renderer = renderer;
+  renderEngine.setRenderer(renderer);
 }
 
 void ImGuiViewer::resetAccumulation()
@@ -137,7 +137,7 @@ void ImGuiViewer::printViewport()
 
 void ImGuiViewer::saveScreenshot(const std::string &basename)
 {
-  const uint32_t *p = (uint32_t*)frameBuffer.map(OSP_FB_COLOR);
+  const uint32_t *p = renderEngine.mapFramebuffer();
   writePPM(basename + ".ppm", windowSize.x, windowSize.y, p);
   cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
        << endl;
@@ -146,7 +146,7 @@ void ImGuiViewer::saveScreenshot(const std::string &basename)
 void ImGuiViewer::setWorldBounds(const box3f &worldBounds) {
   ImGui3DWidget::setWorldBounds(worldBounds);
   aoDistance = (worldBounds.upper.x - worldBounds.lower.x)/4.f;
-  renderer.ref().set("aoDistance", aoDistance);
+  renderer.set("aoDistance", aoDistance);
   renderEngine.markRendererChanged();
 }
 
@@ -154,11 +154,6 @@ void ImGuiViewer::reshape(const vec2i &newSize)
 {
   ImGui3DWidget::reshape(newSize);
   windowSize = newSize;
-  frameBuffer = cpp::FrameBuffer(osp::vec2i{newSize.x, newSize.y},
-                                 OSP_FB_SRGBA,
-                                 OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
-
-  //frameBuffer.clear(OSP_FB_ACCUM);
 
   camera.set("aspect", viewPort.aspect);
   viewPort.modified = true;
@@ -234,10 +229,7 @@ void ImGuiViewer::keypress(char key)
 
 void ImGuiViewer::display()
 {
-  if (!frameBuffer.handle() || !renderer.ref().handle() ) return;
-
-  // NOTE: consume a new renderer if one has been queued by another thread
-  switchRenderers();
+  if (!renderer.handle() ) return;
 
   updateAnimation(ospcommon::getSysTime()-frameTimer);
   frameTimer = ospcommon::getSysTime();
@@ -259,7 +251,7 @@ void ImGuiViewer::display()
 
   // set the glut3d widget's frame buffer to the opsray frame buffer,
   // then display
-  ucharFB = renderEngine.mapResults();
+  ucharFB = renderEngine.mapFramebuffer();
   frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
   ImGui3DWidget::display();
 
@@ -269,11 +261,6 @@ void ImGuiViewer::display()
 
   // that pointer is no longer valid, so set it to null
   ucharFB = nullptr;
-}
-
-void ImGuiViewer::switchRenderers()
-{
-  renderer.update();
 }
 
 void ImGuiViewer::updateAnimation(double deltaSeconds)
@@ -313,11 +300,11 @@ void ImGuiViewer::updateAnimation(double deltaSeconds)
       worldModel.addGeometry(staticInst);
       worldModel.addGeometry(dynInst);
       worldModel.commit();
-      renderer.ref().set("model",  worldModel);
+      renderer.set("model",  worldModel);
     }
     else
     {
-      renderer.ref().set("model",  sceneModels[dataFrameId]);
+      renderer.set("model",  sceneModels[dataFrameId]);
     }
     renderEngine.markRendererChanged();
     resetAccumulation();
@@ -388,42 +375,42 @@ void ImGuiViewer::buildGui()
 
     static int ao = 1;
     if (ImGui::SliderInt("aoSamples", &ao, 0, 32)) {
-      renderer.ref().set("aoSamples", ao);
+      renderer.set("aoSamples", ao);
       renderer_changed = true;
     }
 
     if (ImGui::InputFloat("aoDistance", &aoDistance)) {
-      renderer.ref().set("aoDistance", aoDistance);
+      renderer.set("aoDistance", aoDistance);
       renderer_changed = true;
     }
 
     static bool shadows = true;
     if (ImGui::Checkbox("shadows", &shadows)) {
-      renderer.ref().set("shadowsEnabled", int(shadows));
+      renderer.set("shadowsEnabled", int(shadows));
       renderer_changed = true;
     }
 
     static bool singleSidedLighting = true;
     if (ImGui::Checkbox("single_sided_lighting", &singleSidedLighting)) {
-      renderer.ref().set("oneSidedLighting", int(singleSidedLighting));
+      renderer.set("oneSidedLighting", int(singleSidedLighting));
       renderer_changed = true;
     }
 
     static int exponent = -6;
     if (ImGui::SliderInt("ray_epsilon (exponent)", &exponent, -10, 2)) {
-      renderer.ref().set("epsilon", ospcommon::pow(10.f, (float)exponent));
+      renderer.set("epsilon", ospcommon::pow(10.f, (float)exponent));
       renderer_changed = true;
     }
 
     static int spp = 1;
     if (ImGui::SliderInt("spp", &spp, -4, 16)) {
-      renderer.ref().set("spp", spp);
+      renderer.set("spp", spp);
       renderer_changed = true;
     }
 
     static ImVec4 bg_color = ImColor(255, 255, 255);
     if (ImGui::ColorEdit3("bg_color", (float*)&bg_color)) {
-      renderer.ref().set("bgColor", bg_color.x, bg_color.y, bg_color.z);
+      renderer.set("bgColor", bg_color.x, bg_color.y, bg_color.z);
       renderer_changed = true;
     }
 

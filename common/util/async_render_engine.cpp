@@ -79,7 +79,7 @@ bool async_render_engine::hasNewFrame()
   return newPixels;
 }
 
-uint32_t *async_render_engine::mapResults()
+uint32_t *async_render_engine::mapFramebuffer()
 {
   fbMutex.lock();
   newPixels = false;
