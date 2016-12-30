@@ -76,7 +76,6 @@ private:
   void validate();
   bool checkForObjCommits();
   bool checkForFbResize();
-  bool updateProperties();
   void run();
 
   // Data //
