@@ -76,7 +76,7 @@ ImGuiViewer::ImGuiViewer(const std::deque<box3f> &worldBounds,
   animationFrameDelta = .03;
   animationFrameId = 0;
   animationPaused = false;
-  glutViewPort = viewPort;
+  originalView = viewPort;
   scale = vec3f(1,1,1);
 }
 
@@ -167,7 +167,7 @@ void ImGuiViewer::keypress(char key)
 void ImGuiViewer::resetView()
 {
   auto oldAspect = viewPort.aspect;
-  viewPort = glutViewPort;
+  viewPort = originalView;
   viewPort.aspect = oldAspect;
 }
 
@@ -183,8 +183,7 @@ void ImGuiViewer::printViewport()
 void ImGuiViewer::saveScreenshot(const std::string &basename)
 {
   writePPM(basename + ".ppm", windowSize.x, windowSize.y, pixelBuffer.data());
-  std::cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
-            << std::endl;
+  std::cout << "saved current frame to '" << basename << ".ppm'" << std::endl;
 }
 
 void ImGuiViewer::toggleRenderingPaused()

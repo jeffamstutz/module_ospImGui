@@ -82,7 +82,7 @@ namespace ospray {
     double lastFrameFPS;
 
     ospcommon::vec2i windowSize;
-    imgui3D::ImGui3DWidget::ViewPort glutViewPort;
+    imgui3D::ImGui3DWidget::ViewPort originalView;
 
     double frameTimer;
     double animationTimer;
