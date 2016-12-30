@@ -18,15 +18,13 @@
 
 // std
 #include <atomic>
-#include <deque>
 #include <thread>
+#include <vector>
 
 // ospcommon
 #include <ospcommon/box.h>
 
 // ospray::cpp
-#include <ospray_cpp/Camera.h>
-#include <ospray_cpp/Model.h>
 #include <ospray_cpp/Renderer.h>
 
 // ospImGui util
