@@ -238,8 +238,6 @@ void ImGuiViewer::display()
     renderEngine.scheduleObjectCommit(camera);
   }
 
-  bool displayFrame = true;
-
   if (renderEngine.hasNewFrame()) {
     auto &mappedFB = renderEngine.mapFramebuffer();
     auto nPixels = windowSize.x * windowSize.y;
@@ -254,14 +252,12 @@ void ImGuiViewer::display()
     renderEngine.unmapFramebuffer();
   }
 
-  if (displayFrame) {
-    ucharFB = pixelBuffer.data();
-    frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
-    ImGui3DWidget::display();
+  ucharFB = pixelBuffer.data();
+  frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
+  ImGui3DWidget::display();
 
-    // that pointer is no longer valid, so set it to null
-    ucharFB = nullptr;
-  }
+  // that pointer is no longer valid, so set it to null
+  ucharFB = nullptr;
 }
 
 void ImGuiViewer::toggleRenderEngine()
