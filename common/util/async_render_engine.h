@@ -64,10 +64,11 @@ public:
 
   // Output queries //
 
-  bool      hasNewFrame();
-  uint32_t* mapFramebuffer();
-  void      unmapFrame();
-  double    lastFrameFps();
+  const std::vector<uint32_t> &mapFramebuffer();
+
+  bool   hasNewFrame();
+  void   unmapFrame();
+  double lastFrameFps();
 
 private:
 

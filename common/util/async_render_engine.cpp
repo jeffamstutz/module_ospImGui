@@ -82,11 +82,11 @@ bool async_render_engine::hasNewFrame()
   return newPixels;
 }
 
-uint32_t *async_render_engine::mapFramebuffer()
+const std::vector<uint32_t> &async_render_engine::mapFramebuffer()
 {
   fbMutex.lock();
   newPixels = false;
-  return pixelBuffer[mappedPB].data();
+  return pixelBuffer[mappedPB];
 }
 
 void async_render_engine::unmapFrame()

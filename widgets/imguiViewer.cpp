@@ -242,21 +242,30 @@ void ImGuiViewer::display()
     renderEngine.markViewChanged();
   }
 
+  bool displayFrame = true;
+
   if (renderEngine.hasNewFrame()) {
-    auto *srcPixels = renderEngine.mapFramebuffer();
-    auto *dstPixels = pixelBuffer.data();
+    auto &mappedFB = renderEngine.mapFramebuffer();
     auto nPixels = windowSize.x * windowSize.y;
-    memcpy(dstPixels, srcPixels, nPixels * sizeof(uint32_t));
-    lastFrameFPS = renderEngine.lastFrameFps();
+
+    if (mappedFB.size() == nPixels) {
+      auto *srcPixels = mappedFB.data();
+      auto *dstPixels = pixelBuffer.data();
+      memcpy(dstPixels, srcPixels, nPixels * sizeof(uint32_t));
+      lastFrameFPS = renderEngine.lastFrameFps();
+    }
+
     renderEngine.unmapFrame();
   }
 
-  ucharFB = pixelBuffer.data();
-  frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
-  ImGui3DWidget::display();
+  if (displayFrame) {
+    ucharFB = pixelBuffer.data();
+    frameBufferMode = ImGui3DWidget::FRAMEBUFFER_UCHAR;
+    ImGui3DWidget::display();
 
-  // that pointer is no longer valid, so set it to null
-  ucharFB = nullptr;
+    // that pointer is no longer valid, so set it to null
+    ucharFB = nullptr;
+  }
 }
 
 void ImGuiViewer::toggleRenderEngine()
