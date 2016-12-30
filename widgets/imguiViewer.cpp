@@ -19,14 +19,7 @@
 
 #include <imgui.h>
 
-using std::cout;
-using std::endl;
-
 using std::string;
-
-using std::lock_guard;
-using std::mutex;
-
 using namespace ospcommon;
 
 // Static local helper functions //////////////////////////////////////////////
@@ -190,8 +183,8 @@ void ImGuiViewer::printViewport()
 void ImGuiViewer::saveScreenshot(const std::string &basename)
 {
   writePPM(basename + ".ppm", windowSize.x, windowSize.y, pixelBuffer.data());
-  cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
-       << endl;
+  std::cout << "#ospGlutViewer: saved current frame to '" << basename << ".ppm'"
+            << std::endl;
 }
 
 void ImGuiViewer::toggleRenderingPaused()
