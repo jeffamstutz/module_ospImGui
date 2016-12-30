@@ -17,7 +17,6 @@
 #pragma once
 
 #include <mutex>
-#include <utility>
 
 template <typename T>
 class transactional_value
