@@ -58,15 +58,15 @@ public:
   void start();
   void stop();
 
-  ExecState runningState();
+  ExecState runningState() const;
 
   // Output queries //
 
-  const std::vector<uint32_t> &mapFramebuffer();
+  bool   hasNewFrame() const;
+  double lastFrameFps() const;
 
-  bool   hasNewFrame();
-  void   unmapFrame();
-  double lastFrameFps();
+  const std::vector<uint32_t> &mapFramebuffer();
+  void                         unmapFrame();
 
 private:
 

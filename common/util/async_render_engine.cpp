@@ -63,14 +63,19 @@ void async_render_engine::stop()
     backgroundThread.join();
 }
 
-ExecState async_render_engine::runningState()
+ExecState async_render_engine::runningState() const
 {
   return state;
 }
 
-bool async_render_engine::hasNewFrame()
+bool async_render_engine::hasNewFrame() const
 {
   return newPixels;
+}
+
+double async_render_engine::lastFrameFps() const
+{
+  return fps.getFPS();
 }
 
 const std::vector<uint32_t> &async_render_engine::mapFramebuffer()
@@ -83,11 +88,6 @@ const std::vector<uint32_t> &async_render_engine::mapFramebuffer()
 void async_render_engine::unmapFrame()
 {
   fbMutex.unlock();
-}
-
-double async_render_engine::lastFrameFps()
-{
-  return fps.getFPS();
 }
 
 void async_render_engine::validate()
