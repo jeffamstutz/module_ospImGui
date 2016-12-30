@@ -19,5 +19,6 @@ ospray_create_library(ospray_imgui_util
   fenced_property.h
   FPSCounter.cpp
   LINK
+  ospray_common
   ospray
 )
