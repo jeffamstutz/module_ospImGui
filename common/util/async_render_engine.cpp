@@ -39,10 +39,12 @@ namespace ospray {
     objsToCommit.push_back(obj.object());
   }
 
-  void async_render_engine::start()
+  void async_render_engine::start(int numThreads)
   {
     if (state == ExecState::RUNNING)
       return;
+
+    numOsprayThreads = numThreads;
 
     validate();
 
@@ -135,6 +137,11 @@ namespace ospray {
 
   void async_render_engine::run()
   {
+    auto device = ospGetCurrentDevice();
+    if (numOsprayThreads > 0)
+      ospDeviceSet1i(device, "numThreads", numOsprayThreads);
+    ospDeviceCommit(device);
+
     while (state == ExecState::RUNNING) {
       bool resetAccum = false;
       resetAccum |= renderer.update();

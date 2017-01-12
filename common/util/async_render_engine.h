@@ -53,7 +53,7 @@ namespace ospray {
 
     // Engine conrols //
 
-    void start();
+    void start(int numThreads = -1);
     void stop();
 
     ExecState runningState() const;
@@ -76,6 +76,8 @@ namespace ospray {
     void run();
 
     // Data //
+
+    int numOsprayThreads {-1};
 
     std::thread backgroundThread;
     std::atomic<ExecState> state {ExecState::INVALID};
