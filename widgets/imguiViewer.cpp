@@ -352,6 +352,13 @@ void ImGuiViewer::buildGui()
   {
     bool renderer_changed = false;
 
+    static int numThreads = -1;
+    if (ImGui::InputInt("# threads", &numThreads, 1)) {
+      renderEngine.stop();
+      renderEngine.start(numThreads);
+      renderer_changed = true;
+    }
+
     static int ao = 1;
     if (ImGui::SliderInt("aoSamples", &ao, 0, 32)) {
       renderer.set("aoSamples", ao);
