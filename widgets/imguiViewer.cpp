@@ -370,6 +370,12 @@ void ImGuiViewer::buildGui()
       renderer_changed = true;
     }
 
+    static bool ao_transparency = false;
+    if (ImGui::Checkbox("ao transparency", &ao_transparency)) {
+      renderer.set("aoTransparencyEnabled", int(ao_transparency));
+      renderer_changed = true;
+    }
+
     static bool shadows = true;
     if (ImGui::Checkbox("shadows", &shadows)) {
       renderer.set("shadowsEnabled", int(shadows));
