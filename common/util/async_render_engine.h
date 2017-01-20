@@ -18,92 +18,89 @@
 
 // std
 #include <atomic>
-#include <deque>
 #include <thread>
+#include <vector>
 
 // ospcommon
 #include <ospcommon/box.h>
 
 // ospray::cpp
-#include <ospray_cpp/Camera.h>
-#include <ospray_cpp/Model.h>
 #include <ospray_cpp/Renderer.h>
 
 // ospImGui util
 #include "ImguiUtilExport.h"
-#include "fenced_property.h"
 #include "FPSCounter.h"
+#include "transactional_value.h"
 
 namespace ospray {
 
-enum class ExecState {STOPPED, RUNNING, INVALID};
+  enum class ExecState {STOPPED, RUNNING, INVALID};
 
-class OSPRAY_IMGUI_UTIL_INTERFACE async_render_engine
-{
-public:
+  class OSPRAY_IMGUI_UTIL_INTERFACE async_render_engine
+  {
+  public:
 
-  async_render_engine() = default;
-  ~async_render_engine();
+    async_render_engine() = default;
+    ~async_render_engine();
 
-  // Properties //
+    // Properties //
 
-  void setRenderer(cpp::Renderer renderer);
-  void setCamera(cpp::Camera camera);
-  void setFbSize(const ospcommon::vec2i &size);
+    void setRenderer(cpp::Renderer renderer);
+    void setFbSize(const ospcommon::vec2i &size);
 
-  // Methods to say when an objects needs to be comitted before next frame //
+    // Method to say that an objects needs to be comitted before next frame //
 
-  void markViewChanged();
-  void markRendererChanged();
+    void scheduleObjectCommit(const cpp::ManagedObject &obj);
 
-  // Engine conrols //
+    // Engine conrols //
 
-  void start();
-  void stop();
+    void start(int numThreads = -1);
+    void stop();
 
-  ExecState runningState();
+    ExecState runningState() const;
 
-  // Output queries //
+    // Output queries //
 
-  const std::vector<uint32_t> &mapFramebuffer();
+    bool   hasNewFrame() const;
+    double lastFrameFps() const;
 
-  bool   hasNewFrame();
-  void   unmapFrame();
-  double lastFrameFps();
+    const std::vector<uint32_t> &mapFramebuffer();
+    void                         unmapFramebuffer();
 
-private:
+  private:
 
-  // Helper functions //
+    // Helper functions //
 
-  void validate();
-  bool checkForFbResize();
-  bool updateProperties();
-  void run();
+    void validate();
+    bool checkForObjCommits();
+    bool checkForFbResize();
+    void run();
 
-  // Data //
+    // Data //
 
-  std::thread backgroundThread;
-  std::atomic<ExecState> state {ExecState::INVALID};
+    int numOsprayThreads {-1};
 
-  cpp::FrameBuffer frameBuffer;
-  cpp::Camera      camera;
+    std::thread backgroundThread;
+    std::atomic<ExecState> state {ExecState::INVALID};
 
-  fenced_property<cpp::Renderer>    renderer;
-  fenced_property<int>              whichModelToRender {0};
-  fenced_property<ospcommon::vec2i> fbSize;
+    cpp::FrameBuffer frameBuffer;
 
-  int nPixels {0};
+    transactional_value<cpp::Renderer>    renderer;
+    transactional_value<ospcommon::vec2i> fbSize;
 
-  int currentPB {0};
-  int mappedPB  {1};
-  std::mutex fbMutex;
-  std::vector<uint32_t> pixelBuffer[2];
+    int nPixels {0};
 
-  std::atomic<bool> viewChanged     {false};
-  std::atomic<bool> rendererChanged {false};
-  std::atomic<bool> newPixels       {false};
+    int currentPB {0};
+    int mappedPB  {1};
+    std::mutex fbMutex;
+    std::vector<uint32_t> pixelBuffer[2];
 
-  FPSCounter fps;
-};
+    std::mutex objMutex;
+    std::vector<OSPObject> objsToCommit;
+
+    std::atomic<bool> newPixels {false};
+
+    FPSCounter fps;
+  };
 
 }// namespace ospray

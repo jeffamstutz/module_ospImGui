@@ -26,9 +26,7 @@
 #include <ospray_cpp/Model.h>
 #include <ospray_cpp/Renderer.h>
 
-#include "../common/util/fenced_property.h"
 #include "../common/util/async_render_engine.h"
-#include "../common/util/FPSCounter.h"
 
 #include "imgui3D.h"
 #include "Imgui3dExport.h"
@@ -46,33 +44,33 @@ namespace ospray {
   public:
 
     ImGuiViewer(const std::deque<ospcommon::box3f> &worldBounds,
-                std::deque<cpp::Model> model,
+                const std::deque<cpp::Model> &model,
                 cpp::Renderer renderer,
                 cpp::Camera camera);
     ~ImGuiViewer();
 
     void setRenderer(OSPRenderer renderer);
-    void toggleFullscreen();
-    void resetView();
-    void printViewport();
-    void saveScreenshot(const std::string &basename);
     void setScale(const ospcommon::vec3f& v )  {scale = v;}
     void setTranslation(const ospcommon::vec3f& v)  {translate = v;}
     void setLockFirstAnimationFrame(bool st) {lockFirstAnimationFrame = st;}
-    // We override this so we can update the AO ray length
-    void setWorldBounds(const ospcommon::box3f &worldBounds) override;
 
   protected:
 
     virtual void reshape(const ospcommon::vec2i &newSize) override;
     virtual void keypress(char key) override;
-    virtual void updateAnimation(double deltaSeconds);
 
-    virtual void buildGui() override;
+    void resetView();
+    void printViewport();
+    void saveScreenshot(const std::string &basename);
+    void toggleRenderingPaused();
+    // We override this so we can update the AO ray length
+    void setWorldBounds(const ospcommon::box3f &worldBounds) override;
 
     void display() override;
 
-    void toggleRenderEngine();
+    virtual void updateAnimation(double deltaSeconds);
+
+    virtual void buildGui() override;
 
     // Data //
 
@@ -84,8 +82,7 @@ namespace ospray {
     double lastFrameFPS;
 
     ospcommon::vec2i windowSize;
-    bool fullScreen;
-    imgui3D::ImGui3DWidget::ViewPort glutViewPort;
+    imgui3D::ImGui3DWidget::ViewPort originalView;
 
     double frameTimer;
     double animationTimer;

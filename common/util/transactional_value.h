@@ -17,25 +17,24 @@
 #pragma once
 
 #include <mutex>
-#include <utility>
 
 #include "ImguiUtilExport.h"
 
 template <typename T>
-class fenced_property
+class transactional_value
 {
 public:
 
-  fenced_property()  = default;
-  ~fenced_property() = default;
+  transactional_value()  = default;
+  ~transactional_value() = default;
 
   template <typename OtherType>
-  fenced_property(const OtherType &ot);
+  transactional_value(const OtherType &ot);
 
   template <typename OtherType>
-  fenced_property& operator=(const OtherType &ot);
+  transactional_value& operator=(const OtherType &ot);
 
-  fenced_property<T>& operator=(const fenced_property<T>& fp);
+  transactional_value<T>& operator=(const transactional_value<T>& fp);
 
   T &ref();
   T  get();
@@ -51,18 +50,19 @@ private:
   std::mutex mutex;
 };
 
-// Inlined fenced_property Members ////////////////////////////////////////////
+// Inlined transactional_value Members ////////////////////////////////////////
 
 template <typename T>
 template <typename OtherType>
-inline fenced_property<T>::fenced_property(const OtherType &ot)
+inline transactional_value<T>::transactional_value(const OtherType &ot)
 {
   currentValue = ot;
 }
 
 template <typename T>
 template <typename OtherType>
-inline fenced_property<T> &fenced_property<T>::operator=(const OtherType &ot)
+inline transactional_value<T> &
+transactional_value<T>::operator=(const OtherType &ot)
 {
   std::lock_guard<std::mutex> lock{mutex};
   queuedValue = ot;
@@ -71,8 +71,8 @@ inline fenced_property<T> &fenced_property<T>::operator=(const OtherType &ot)
 }
 
 template <typename T>
-inline fenced_property<T> &
-fenced_property<T>::operator=(const fenced_property<T> &fp)
+inline transactional_value<T> &
+transactional_value<T>::operator=(const transactional_value<T> &fp)
 {
   std::lock_guard<std::mutex> lock{mutex};
   queuedValue = fp.ref();
@@ -81,19 +81,19 @@ fenced_property<T>::operator=(const fenced_property<T> &fp)
 }
 
 template<typename T>
-inline T &fenced_property<T>::ref()
+inline T &transactional_value<T>::ref()
 {
   return currentValue;
 }
 
 template<typename T>
-inline T fenced_property<T>::get()
+inline T transactional_value<T>::get()
 {
   return currentValue;
 }
 
 template<typename T>
-inline bool fenced_property<T>::update()
+inline bool transactional_value<T>::update()
 {
   bool didUpdate = false;
   if (newValue) {
