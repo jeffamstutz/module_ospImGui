@@ -21,7 +21,6 @@
 
 set(LIB_NAME imgui)
 
-add_definitions(-Dimgui_EXPORTS)
 add_library(${LIB_NAME} SHARED
   imgui.cpp
   imgui_draw.cpp
