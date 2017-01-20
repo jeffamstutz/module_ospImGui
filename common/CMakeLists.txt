@@ -25,6 +25,11 @@ endif()
 set(GLFW_BUILD_DOCS     OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# GLFW seems to need to build as shared libs for windows
+if (WIN32)
+  set(BUILD_SHARED_LIBS ON)
+endif()
 add_subdirectory(glfw)
 
 ##############################################################

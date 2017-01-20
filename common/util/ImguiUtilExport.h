@@ -17,11 +17,12 @@
 #pragma once
 
 #ifdef _WIN32
-#  ifdef ospray_imgui3d_EXPORTS
-#    define OSPRAY_IMGUI3D_INTERFACE __declspec(dllexport)
+#  ifdef ospray_imgui_util_EXPORTS
+#    define OSPRAY_IMGUI_UTIL_INTERFACE __declspec(dllexport)
 #  else
-#    define OSPRAY_IMGUI3D_INTERFACE __declspec(dllimport)
+#    define OSPRAY_IMGUI_UTIL_INTERFACE __declspec(dllimport)
 #  endif
 #else
-#  define OSPRAY_IMGUI3D_INTERFACE
+#  define OSPRAY_IMGUI_UTIL_INTERFACE
 #endif
+

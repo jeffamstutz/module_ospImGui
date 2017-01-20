@@ -19,6 +19,8 @@
 #include <mutex>
 #include <utility>
 
+#include "ImguiUtilExport.h"
+
 template <typename T>
 class fenced_property
 {
@@ -65,6 +67,7 @@ inline fenced_property<T> &fenced_property<T>::operator=(const OtherType &ot)
   std::lock_guard<std::mutex> lock{mutex};
   queuedValue = ot;
   newValue    = true;
+  return *this;
 }
 
 template <typename T>
@@ -74,6 +77,7 @@ fenced_property<T>::operator=(const fenced_property<T> &fp)
   std::lock_guard<std::mutex> lock{mutex};
   queuedValue = fp.ref();
   newValue    = true;
+  return *this;
 }
 
 template<typename T>

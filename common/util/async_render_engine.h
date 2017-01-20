@@ -30,6 +30,7 @@
 #include <ospray_cpp/Renderer.h>
 
 // ospImGui util
+#include "ImguiUtilExport.h"
 #include "fenced_property.h"
 #include "FPSCounter.h"
 
@@ -37,7 +38,7 @@ namespace ospray {
 
 enum class ExecState {STOPPED, RUNNING, INVALID};
 
-class async_render_engine
+class OSPRAY_IMGUI_UTIL_INTERFACE async_render_engine
 {
 public:
 

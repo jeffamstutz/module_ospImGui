@@ -23,9 +23,9 @@ include_directories(
 
 ospray_create_library(ospray_imgui3d
   Imgui3dExport.h
+  imgui_impl_glfw_gl3.cpp
   imgui3D.cpp
   imguiViewer.cpp
-  imgui_impl_glfw_gl3.cpp
 LINK
   ospray
   ospray_common

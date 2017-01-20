@@ -16,10 +16,12 @@
 
 #pragma once
 
+#include "ImguiUtilExport.h"
+
 namespace ospray {
 
   /*! helper class that allows for easily computing (smoothed) frame rate */
-  struct FPSCounter {
+  struct OSPRAY_IMGUI_UTIL_INTERFACE FPSCounter {
     FPSCounter();
     void startRender();
     void doneRender();
