@@ -25,7 +25,7 @@
 #include <ospcommon/box.h>
 
 // ospray::cpp
-#include <ospray_cpp/Renderer.h>
+#include <ospray/ospray_cpp/Renderer.h>
 
 // ospImGui util
 #include "ImguiUtilExport.h"
