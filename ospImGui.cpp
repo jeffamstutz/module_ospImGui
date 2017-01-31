@@ -22,6 +22,7 @@
 ospcommon::vec3f translate;
 ospcommon::vec3f scale;
 bool lockFirstFrame = false;
+bool showGui = true;
 
 void parseExtraParametersFromComandLine(int ac, const char **&av)
 {
@@ -37,6 +38,8 @@ void parseExtraParametersFromComandLine(int ac, const char **&av)
       scale.z = atof(av[++i]);
     } else if (arg == "--lockFirstFrame") {
       lockFirstFrame = true;
+    } else if (arg == "--nogui") {
+      showGui = false;
     }
   }
 }
@@ -57,6 +60,7 @@ int main(int ac, const char **av)
   std::tie(bbox, model, renderer, camera) = ospObjs;
 
   parseExtraParametersFromComandLine(ac, av);
+  ospray::imgui3D::ImGui3DWidget::showGui = showGui;
 
   ospray::ImGuiViewer window(bbox, model, renderer, camera);
   window.setScale(scale);
